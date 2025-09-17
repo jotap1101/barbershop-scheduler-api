@@ -6,6 +6,7 @@ django-filter==25.1
 djangorestframework==3.16.1
 djangorestframework_simplejwt==5.5.1
 drf-spectacular==0.28.0
+drf-spectacular-sidecar==2025.9.1
 Faker==37.8.0
 inflection==0.5.1
 jsonschema==4.25.1
@@ -16,5 +17,6 @@ PyYAML==6.0.2
 referencing==0.36.2
 rpds-py==0.27.1
 sqlparse==0.5.3
+typing_extensions==4.15.0
 tzdata==2025.2
 uritemplate==4.2.0
