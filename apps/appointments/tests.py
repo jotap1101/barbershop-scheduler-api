@@ -26,7 +26,7 @@ class AppointmentAPITests(APITestCase, TestMixin):
     def setUp(self):
         """Set up test data."""
         # Create users
-        self.owner = User.objects.create_user(
+        self.owner = self._create_user(
             username='owner',
             password='testpass123',
             email='owner@test.com',
@@ -36,7 +36,7 @@ class AppointmentAPITests(APITestCase, TestMixin):
             phone='1234567890'
         )
         
-        self.barber = User.objects.create_user(
+        self.barber = self._create_user(
             username='barber',
             password='testpass123',
             email='barber@test.com',
@@ -46,7 +46,7 @@ class AppointmentAPITests(APITestCase, TestMixin):
             phone='1234567891'
         )
         
-        self.client_user = User.objects.create_user(
+        self.client_user = self._create_user(
             username='client',
             password='testpass123',
             email='client@test.com',
@@ -87,11 +87,7 @@ class AppointmentAPITests(APITestCase, TestMixin):
             barbershop=self.barbershop
         )
         
-        # Set up URLs
-        self.appointments_url = reverse('appointments:appointment-list')
-        self.schedules_url = reverse('appointments:barberschedule-list')
-        
-        # Set up test datetime
+        # Set up test datetime with timezone awareness
         self.tomorrow = timezone.now() + timedelta(days=1)
         self.tomorrow = self.tomorrow.replace(
             hour=10, minute=0, second=0, microsecond=0
@@ -107,28 +103,23 @@ class AppointmentAPITests(APITestCase, TestMixin):
             is_available=True
         )
         
-        # Create test appointment
+        # Create test appointment with timezone-aware datetimes
         self.appointment = Appointment.objects.create(
             customer=self.barbershop_customer,
             barber=self.barber,
             service=self.service,
             barbershop=self.barbershop,
-            start_datetime=self.tomorrow,
-            end_datetime=self.tomorrow + timedelta(minutes=30),
+            start_datetime=timezone.make_aware(self.tomorrow),
+            end_datetime=timezone.make_aware(self.tomorrow + timedelta(minutes=30)),
             status='PENDING'
         )
         
-        # Set up detail URLs
+        # Set up URLs
+        self.appointments_url = reverse('appointments:appointment-list')
         self.appointment_detail_url = reverse(
             'appointments:appointment-detail',
             args=[self.appointment.id]
         )
-        self.schedule_detail_url = reverse(
-            'appointments:barberschedule-detail',
-            args=[self.schedule.id]
-        )
-        
-        # Set up action URLs
         self.upcoming_url = reverse('appointments:appointment-upcoming')
         self.available_slots_url = reverse('appointments:appointment-available-slots')
 
@@ -586,13 +577,13 @@ class BarberScheduleAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['id'], self.appointment.id)
 
-class BarberScheduleAPITests(APITestCase):
+class BarberScheduleAPITests(APITestCase, TestMixin):
     """Test suite for barber schedule endpoints."""
     
     def setUp(self):
         """Set up test data."""
         # Create users
-        self.owner = User.objects.create_user(
+        self.owner = self._create_user(
             username='owner',
             password='testpass123',
             email='owner@test.com',
@@ -602,7 +593,7 @@ class BarberScheduleAPITests(APITestCase):
             phone='1234567890'
         )
         
-        self.barber = User.objects.create_user(
+        self.barber = self._create_user(
             username='barber',
             password='testpass123',
             email='barber@test.com',
@@ -612,7 +603,7 @@ class BarberScheduleAPITests(APITestCase):
             phone='1234567891'
         )
         
-        self.client_user = User.objects.create_user(
+        self.client_user = self._create_user(
             username='client',
             password='testpass123',
             email='client@test.com',
@@ -693,9 +684,8 @@ class BarberScheduleAPITests(APITestCase):
     def test_update_own_schedule(self):
         """Test barber can update their own schedule."""
         self.authenticate_as(self.barber)
-        url = reverse('appointments:barberschedule-detail', args=[self.schedule.id])
         data = {'is_available': False}
-        response = self.client.patch(url, data)
+        response = self.client.patch(self.schedule_detail_url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             BarberSchedule.objects.get(id=self.schedule.id).is_available,
@@ -711,10 +701,10 @@ class BarberScheduleAPITests(APITestCase):
             email='other@test.com'
         )
         self.authenticate_as(other_barber)
-        url = reverse('appointments:barberschedule-detail', args=[self.schedule.id])
         data = {'is_available': False}
-        response = self.client.patch(url, data)
+        response = self.client.patch(self.schedule_detail_url, data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertTrue(BarberSchedule.objects.get(id=self.schedule.id).is_available)
 
     def test_owner_can_manage_schedules(self):
         """Test barbershop owner can manage all schedules."""
