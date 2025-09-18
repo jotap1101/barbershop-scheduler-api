@@ -31,7 +31,7 @@ class Payment(models.Model):
     )
     amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Valor")
     method = models.CharField(
-        max_length=5,
+        max_length=15,
         choices=Method.choices,
         default=Method.PIX,
         verbose_name="Método de Pagamento",

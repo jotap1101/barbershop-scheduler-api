@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'apps.barbershops',
     'apps.appointments',
     'apps.payments',
+    'apps.reviews',
 ]
 
 # Custom user model

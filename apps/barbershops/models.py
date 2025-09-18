@@ -71,7 +71,7 @@ class BarbershopCustomer(models.Model):
         verbose_name = "Cliente da Barbearia"
         verbose_name_plural = "Clientes da Barbearia"
         unique_together = ["customer", "barbershop"]
-        ordering = ["-date_joined"]
+        ordering = ["-last_visit"]
 
     id = models.UUIDField(
         primary_key=True, default=uuid4, editable=False, verbose_name="ID"
