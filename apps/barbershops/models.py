@@ -1,96 +1,97 @@
 from django.db import models
 from django.conf import settings
+from uuid import uuid4
+
 
 class Barbershop(models.Model):
-    name = models.CharField(max_length=100)
-    address = models.CharField(max_length=255)
-    phone = models.CharField(max_length=20)
+    class Meta:
+        verbose_name = "Barbearia"
+        verbose_name_plural = "Barbearias"
+        ordering = ["name"]
+
+    id = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False, verbose_name="ID"
+    )
+    name = models.CharField(max_length=255, unique=True, verbose_name="Nome")
+    description = models.TextField(null=True, blank=True, verbose_name="Descrição")
+    cnpj = models.CharField(
+        max_length=20, unique=True, null=True, blank=True, verbose_name="CNPJ"
+    )
+    address = models.CharField(max_length=255, verbose_name="Endereço")
+    email = models.EmailField(unique=True, null=True, blank=True, verbose_name="Email")
+    phone = models.CharField(
+        max_length=20, null=True, blank=True, verbose_name="Telefone"
+    )
+    website = models.URLField(null=True, blank=True, verbose_name="Website")
+    logo = models.ImageField(
+        upload_to="barbershops/logos/", null=True, blank=True, verbose_name="Logo"
+    )
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='owned_barbershops'
+        related_name="barbershops",
+        verbose_name="Proprietário",
     )
-    description = models.TextField(blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Criado em")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Atualizado em")
 
     def __str__(self):
         return self.name
 
-    class Meta:
-        verbose_name = 'Barbershop'
-        verbose_name_plural = 'Barbershops'
-        ordering = ['name']
-
 
 class Service(models.Model):
+    class Meta:
+        verbose_name = "Serviço"
+        verbose_name_plural = "Serviços"
+        ordering = ["barbershop", "name"]
+
+    id = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False, verbose_name="ID"
+    )
     barbershop = models.ForeignKey(
         Barbershop,
         on_delete=models.CASCADE,
-        related_name='services'
+        related_name="services",
+        verbose_name="Barbearia",
     )
-    name = models.CharField(max_length=100)
-    description = models.TextField(blank=True)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    duration = models.IntegerField(help_text='Duration in minutes')
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    name = models.CharField(max_length=255, verbose_name="Nome")
+    description = models.TextField(null=True, blank=True, verbose_name="Descrição")
+    price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Preço")
+    duration = models.DurationField(verbose_name="Duração")
+    available = models.BooleanField(default=True, verbose_name="Disponível")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Criado em")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Atualizado em")
 
     def __str__(self):
-        return f"{self.name} at {self.barbershop.name}"
-
-    class Meta:
-        verbose_name = 'Service'
-        verbose_name_plural = 'Services'
-        ordering = ['barbershop', 'name']
-
-
-class Barber(models.Model):
-    user = models.OneToOneField(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='barber_profile'
-    )
-    barbershops = models.ManyToManyField(
-        Barbershop,
-        related_name='barbers'
-    )
-    specialties = models.TextField(blank=True)
-    experience_years = models.PositiveIntegerField(default=0)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f"{self.user.get_full_name()} - Barber"
-
-    class Meta:
-        verbose_name = 'Barber'
-        verbose_name_plural = 'Barbers'
-        ordering = ['user__first_name', 'user__last_name']
+        return self.name
 
 
 class BarbershopCustomer(models.Model):
+    class Meta:
+        verbose_name = "Cliente da Barbearia"
+        verbose_name_plural = "Clientes da Barbearia"
+        unique_together = ["customer", "barbershop"]
+        ordering = ["-date_joined"]
+
+    id = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False, verbose_name="ID"
+    )
     customer = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
-        related_name='customer_barbershops'
+        related_name="barbershop_customers",
+        verbose_name="Cliente",
     )
     barbershop = models.ForeignKey(
         Barbershop,
         on_delete=models.CASCADE,
-        related_name='customers'
+        related_name="barbershop_customers",
+        verbose_name="Barbearia",
     )
-    loyalty_points = models.PositiveIntegerField(default=0)
-    date_joined = models.DateTimeField(auto_now_add=True)
-    last_visit = models.DateTimeField(null=True, blank=True)
-    notes = models.TextField(blank=True)
+    last_visit = models.DateTimeField(
+        null=True, blank=True, verbose_name="Última Visita"
+    )
 
     def __str__(self):
-        return f"{self.customer.get_full_name()} at {self.barbershop.name}"
-
-    class Meta:
-        verbose_name = 'Barbershop Customer'
-        verbose_name_plural = 'Barbershop Customers'
-        unique_together = ['customer', 'barbershop']
-        ordering = ['-date_joined']
+        return self.customer.get_full_name() or self.customer.username
