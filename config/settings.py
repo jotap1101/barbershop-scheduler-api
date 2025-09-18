@@ -113,46 +113,46 @@ SIMPLE_JWT = {
 }
 
 # drf-spectacular settings
-SPECTACULAR_SETTINGS = {
-    'TITLE': 'Barbershop API',
-    'DESCRIPTION': 'API for managing barbershops, appointments, and payments',
-    'VERSION': '1.0.0',
-    'SERVE_INCLUDE_SCHEMA': True,
-    'SWAGGER_UI_SETTINGS': {
-        'persistAuthorization': True,
-        'displayRequestDuration': True,
-        'filter': True,
-        'tagsSorter': 'alpha',
-        'operationsSorter': 'alpha',
-        'docExpansion': 'list'
-    },
-    'CONTACT': {
-        'name': 'API Support',
-        'email': 'jotap1101.joaopedro@gmail.com',
-    },
-    'LICENSE': {
-        'name': 'MIT',
-    },
-    'TAGS': [
-        {'name': 'API', 'description': 'Endpoints related to the API'},
-        {'name': 'Authentication', 'description': 'Authentication endpoints for login, logout and token management'},
-        {'name': 'Users', 'description': 'User account management and profile operations'},
-        {'name': 'Barbershops', 'description': 'Barbershop creation, management and details'},
-        {'name': 'Services', 'description': 'Barbershop services and pricing'},
-        {'name': 'Barbers', 'description': 'Barber profiles and availability'},
-        {'name': 'Appointments', 'description': 'Appointment scheduling and management'},
-        {'name': 'Payments', 'description': 'Payment processing and history'},
-    ],
-    'SERVE_PUBLIC': True,
-    'SERVE_PERMISSIONS': ['rest_framework.permissions.AllowAny'],
-    'SERVE_AUTHENTICATION': None,
-    'SWAGGER_UI_DIST': 'SIDECAR',
-    'SWAGGER_UI_FAVICON_HREF': 'SIDECAR',
-    'REDOC_DIST': 'SIDECAR',
-    'SORT_OPERATIONS': False,
-    'COMPONENT_SPLIT_REQUEST': True,
-    'SCHEMA_PATH_PREFIX': r'/api/v[0-9]'
-}
+# SPECTACULAR_SETTINGS = {
+#     'TITLE': 'Barbershop API',
+#     'DESCRIPTION': 'API for managing barbershops, appointments, and payments',
+#     'VERSION': '1.0.0',
+#     'SERVE_INCLUDE_SCHEMA': True,
+#     'SWAGGER_UI_SETTINGS': {
+#         'persistAuthorization': True,
+#         'displayRequestDuration': True,
+#         'filter': True,
+#         'tagsSorter': 'alpha',
+#         'operationsSorter': 'alpha',
+#         'docExpansion': 'list'
+#     },
+#     'CONTACT': {
+#         'name': 'API Support',
+#         'email': 'jotap1101.joaopedro@gmail.com',
+#     },
+#     'LICENSE': {
+#         'name': 'MIT',
+#     },
+#     'TAGS': [
+#         {'name': 'API', 'description': 'Endpoints related to the API'},
+#         {'name': 'Authentication', 'description': 'Authentication endpoints for login, logout and token management'},
+#         {'name': 'Users', 'description': 'User account management and profile operations'},
+#         {'name': 'Barbershops', 'description': 'Barbershop creation, management and details'},
+#         {'name': 'Services', 'description': 'Barbershop services and pricing'},
+#         {'name': 'Barbers', 'description': 'Barber profiles and availability'},
+#         {'name': 'Appointments', 'description': 'Appointment scheduling and management'},
+#         {'name': 'Payments', 'description': 'Payment processing and history'},
+#     ],
+#     'SERVE_PUBLIC': True,
+#     'SERVE_PERMISSIONS': ['rest_framework.permissions.AllowAny'],
+#     'SERVE_AUTHENTICATION': None,
+#     'SWAGGER_UI_DIST': 'SIDECAR',
+#     'SWAGGER_UI_FAVICON_HREF': 'SIDECAR',
+#     'REDOC_DIST': 'SIDECAR',
+#     'SORT_OPERATIONS': False,
+#     'COMPONENT_SPLIT_REQUEST': True,
+#     'SCHEMA_PATH_PREFIX': r'/api/v[0-9]'
+# }
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
