@@ -1,6 +1,10 @@
+from functools import partial
+from uuid import uuid4
+
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from uuid import uuid4
+
+from utils.file_uploads import encrypted_filename
 
 
 class User(AbstractUser):
@@ -30,7 +34,9 @@ class User(AbstractUser):
         null=True, blank=True, verbose_name="Data de Nascimento"
     )
     profile_picture = models.ImageField(
-        upload_to="users/profile_pictures/",
+        upload_to=partial(
+            encrypted_filename, base_folder="profile-pictures", app_name=True
+        ),
         null=True,
         blank=True,
         verbose_name="Foto de Perfil",
