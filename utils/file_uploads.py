@@ -12,6 +12,7 @@ def encrypted_filename(
     subfolder_func=None,
     subfolder_map=None,
     subfolder_attr=None,
+    default_subfolder=None,
 ):
     """
     Gera caminho de upload com hash no nome do arquivo.
@@ -21,9 +22,10 @@ def encrypted_filename(
 
     - app_name: nome do app do model (instance._meta.app_label)
     - base_folder: pasta base (ex: 'profile_pictures', 'logos', etc.)
-    - subfolder_func: função que recebe `instance` e retorna subpasta (modo avançado)
-    - subfolder_map: dict de {valor: subpasta} para mapear por atributo
-    - subfolder_attr: nome do atributo da instância usado para buscar no map
+    - subfolder_func: função que recebe `instance` e retorna subpasta
+    - subfolder_map: dict {valor: subpasta} para mapear por atributo
+    - subfolder_attr: nome do atributo da instância usado no map
+    - default_subfolder: usado se o valor não estiver no map ou for None
     """
     # extensão + hash
     ext = filename.split(".")[-1].lower()
@@ -49,9 +51,11 @@ def encrypted_filename(
     # modo map
     elif subfolder_map and subfolder_attr:
         value = getattr(instance, subfolder_attr, None)
-        if value in subfolder_map:
-            path_parts.append(subfolder_map[value])
+        subfolder = subfolder_map.get(value, default_subfolder)
+        if subfolder:
+            path_parts.append(subfolder)
 
+    # filename sempre por último
     path_parts.append(new_filename)
 
     return os.path.join(*path_parts)

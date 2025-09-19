@@ -43,6 +43,7 @@ class User(AbstractUser):
                 Role.CLIENT: "clients",
             },
             subfolder_attr="role",
+            default_subfolder="others",
         ),
         null=True,
         blank=True,
