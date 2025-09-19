@@ -35,7 +35,14 @@ class User(AbstractUser):
     )
     profile_picture = models.ImageField(
         upload_to=partial(
-            encrypted_filename, base_folder="profile-pictures", app_name=True
+            encrypted_filename,
+            base_folder="profile_pictures",
+            app_name=True,
+            subfolder_map={
+                Role.BARBER: "barbers",
+                Role.CLIENT: "clients",
+            },
+            subfolder_attr="role",
         ),
         null=True,
         blank=True,
