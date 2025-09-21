@@ -16,12 +16,13 @@ class User(AbstractUser):
     class Role(models.TextChoices):
         CLIENT = "CLIENT", "Cliente"
         BARBER = "BARBER", "Barbeiro"
+        ADMIN = "ADMIN", "Administrador"
 
     id = models.UUIDField(
         primary_key=True, default=uuid4, editable=False, verbose_name="ID"
     )
     role = models.CharField(
-        max_length=10, choices=Role.choices, default=Role.CLIENT, verbose_name="Cargo"
+        max_length=10, choices=Role.choices, default=Role.CLIENT, verbose_name="Função"
     )
     is_barbershop_owner = models.BooleanField(
         default=False, verbose_name="Proprietário de Barbearia"
