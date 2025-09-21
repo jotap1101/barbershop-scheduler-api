@@ -13,6 +13,7 @@ from rest_framework.response import Response
 from apps.appointment.models import Appointment, BarberSchedule
 from apps.appointment.permissions import (
     IsAppointmentParticipant,
+    IsBarberSchedulePermission,
     IsOwnerOrBarberOrAdmin,
 )
 from apps.appointment.serializers import (
@@ -75,7 +76,7 @@ class BarberScheduleViewSet(viewsets.ModelViewSet):
     """
 
     queryset = BarberSchedule.objects.all().select_related("barber", "barbershop")
-    permission_classes = [IsOwnerOrBarberOrAdmin]
+    permission_classes = [IsBarberSchedulePermission]
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,

@@ -4,6 +4,7 @@ from uuid import uuid4
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils import timezone
 
 from apps.barbershop.models import Barbershop, BarbershopCustomer, Service
 
@@ -13,7 +14,11 @@ class BarberSchedule(models.Model):
     class Meta:
         verbose_name = "Agenda do Barbeiro"
         verbose_name_plural = "Agendas dos Barbeiros"
-        unique_together = ["barber", "barbershop"]
+        unique_together = [
+            "barber",
+            "barbershop",
+            "weekday",
+        ]
         ordering = ["weekday", "start_time"]
         db_table = "barber_schedules"
 
@@ -65,7 +70,7 @@ class BarberSchedule(models.Model):
 
     def is_working_now(self):
         """Verifica se o barbeiro está trabalhando agora"""
-        now = datetime.now()
+        now = timezone.now()
         if now.weekday() + 1 == self.weekday and self.is_available:
             current_time = now.time()
             return self.start_time <= current_time <= self.end_time
@@ -119,13 +124,13 @@ class BarberSchedule(models.Model):
     def get_next_available_slot(self, service_duration_minutes=30):
         """Retorna o próximo horário disponível"""
 
-        today = datetime.now().date()
+        today = timezone.now().date()
         for i in range(7):  # Verificar próximos 7 dias
             check_date = today + timedelta(days=i)
             if check_date.weekday() == self.weekday:
                 slots = self.get_available_slots(check_date, service_duration_minutes)
                 if slots:
-                    return datetime.combine(check_date, slots[0])
+                    return timezone.make_aware(datetime.combine(check_date, slots[0]))
         return None
 
     def get_appointments_count_today(self):
@@ -161,7 +166,6 @@ class Appointment(models.Model):
     class Meta:
         verbose_name = "Agendamento"
         verbose_name_plural = "Agendamentos"
-        unique_together = ["customer", "barber", "service", "barbershop"]
         ordering = ["-start_datetime"]
         db_table = "appointments"
 
@@ -245,15 +249,15 @@ class Appointment(models.Model):
 
     def is_past(self):
         """Verifica se o agendamento já passou"""
-        return self.end_datetime < datetime.now()
+        return self.end_datetime < timezone.now()
 
     def is_upcoming(self):
         """Verifica se o agendamento é futuro"""
-        return self.start_datetime > datetime.now()
+        return self.start_datetime > timezone.now()
 
     def is_in_progress(self):
         """Verifica se o agendamento está em andamento"""
-        now = datetime.now()
+        now = timezone.now()
         return self.start_datetime <= now <= self.end_datetime
 
     def can_be_cancelled(self):
@@ -301,7 +305,7 @@ class Appointment(models.Model):
         """Retorna o tempo até o agendamento"""
         if self.is_past():
             return None
-        return self.start_datetime - datetime.now()
+        return self.start_datetime - timezone.now()
 
     def get_formatted_datetime(self):
         """Retorna data e hora formatadas"""
@@ -328,7 +332,7 @@ class Appointment(models.Model):
     @classmethod
     def get_upcoming_appointments(cls, barber=None, barbershop=None, days=7):
         """Retorna agendamentos futuros"""
-        start_date = datetime.now()
+        start_date = timezone.now()
         end_date = start_date + timedelta(days=days)
         queryset = cls.objects.filter(
             start_datetime__gte=start_date, start_datetime__lte=end_date

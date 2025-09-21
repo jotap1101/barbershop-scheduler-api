@@ -19,6 +19,46 @@ class IsBarberOrAdmin(permissions.BasePermission):
         )
 
 
+class IsBarberSchedulePermission(permissions.BasePermission):
+    """
+    Permissão específica para BarberSchedule:
+    - Qualquer usuário autenticado pode listar e visualizar horários
+    - Apenas barbeiro proprietário ou dono da barbearia pode criar/editar/deletar
+    """
+
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+
+        # Permitir leitura para todos os usuários autenticados
+        if request.method in permissions.READONLY_METHODS:
+            return True
+
+        # Para criação, edição e deleção, verificar se é barbeiro ou dono
+        return (
+            request.user.role in [User.Role.BARBER, User.Role.ADMIN]
+            or request.user.is_barbershop_owner
+        )
+
+    def has_object_permission(self, request, view, obj):
+        if not request.user or not request.user.is_authenticated:
+            return False
+
+        # Administradores têm acesso total
+        if request.user.role == User.Role.ADMIN:
+            return True
+
+        # Leitura permitida para todos os usuários autenticados
+        if request.method in permissions.READONLY_METHODS:
+            return True
+
+        # Para modificações, apenas o barbeiro ou proprietário da barbearia
+        return (
+            obj.barber == request.user  # O próprio barbeiro
+            or obj.barbershop.owner == request.user  # Proprietário da barbearia
+        )
+
+
 class IsOwnerOrBarberOrAdmin(permissions.BasePermission):
     """
     Permissão para proprietário do recurso, barbeiros ou administradores

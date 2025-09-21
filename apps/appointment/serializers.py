@@ -214,13 +214,18 @@ class AppointmentSerializer(serializers.ModelSerializer):
 
         # Validar se o barbeiro está disponível no horário
         if start_datetime and barber and barbershop:
-            weekday = start_datetime.weekday()  # 0=Monday
+            # Django weekday: Monday=0, Tuesday=1, ..., Sunday=6
+            # BarberSchedule weekday: Sunday=0, Monday=1, ..., Saturday=6
+            python_weekday = start_datetime.weekday()  # 0=Monday
+            barber_weekday = (
+                python_weekday + 1 if python_weekday < 6 else 0
+            )  # Convert to BarberSchedule format
             time = start_datetime.time()
 
             schedule = BarberSchedule.objects.filter(
                 barber=barber,
                 barbershop=barbershop,
-                weekday=weekday,
+                weekday=barber_weekday,
                 start_time__lte=time,
                 end_time__gt=time,
                 is_available=True,
