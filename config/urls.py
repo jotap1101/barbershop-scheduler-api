@@ -45,6 +45,7 @@ urlpatterns = [
     # Local apps
     path("api/v1/", include("apps.auth.urls")),
     path("api/v1/", include("apps.user.urls")),
+    path("api/v1/", include("apps.barbershop.urls")),
 ]
 
 if settings.DEBUG:
