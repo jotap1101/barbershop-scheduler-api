@@ -13,16 +13,24 @@ class BarbershopSerializer(serializers.ModelSerializer):
     formatted_phone = serializers.CharField(
         source="get_formatted_phone", read_only=True
     )
-    total_services = serializers.IntegerField(read_only=True)
-    available_services_count = serializers.IntegerField(read_only=True)
+    total_services = serializers.IntegerField(
+        source="get_total_services", read_only=True
+    )
+    available_services_count = serializers.IntegerField(
+        source="get_available_services_count", read_only=True
+    )
     average_service_price = serializers.DecimalField(
         source="get_average_service_price",
         max_digits=10,
         decimal_places=2,
         read_only=True,
     )
-    total_customers = serializers.IntegerField(read_only=True)
-    total_appointments = serializers.IntegerField(read_only=True)
+    total_customers = serializers.IntegerField(
+        source="get_total_customers", read_only=True
+    )
+    total_appointments = serializers.IntegerField(
+        source="get_total_appointments", read_only=True
+    )
     total_revenue = serializers.DecimalField(
         source="get_total_revenue", max_digits=15, decimal_places=2, read_only=True
     )
@@ -146,16 +154,24 @@ class BarbershopDetailSerializer(serializers.ModelSerializer):
     formatted_phone = serializers.CharField(
         source="get_formatted_phone", read_only=True
     )
-    total_services = serializers.IntegerField(read_only=True)
-    available_services_count = serializers.IntegerField(read_only=True)
+    total_services = serializers.IntegerField(
+        source="get_total_services", read_only=True
+    )
+    available_services_count = serializers.IntegerField(
+        source="get_available_services_count", read_only=True
+    )
     average_service_price = serializers.DecimalField(
         source="get_average_service_price",
         max_digits=10,
         decimal_places=2,
         read_only=True,
     )
-    total_customers = serializers.IntegerField(read_only=True)
-    total_appointments = serializers.IntegerField(read_only=True)
+    total_customers = serializers.IntegerField(
+        source="get_total_customers", read_only=True
+    )
+    total_appointments = serializers.IntegerField(
+        source="get_total_appointments", read_only=True
+    )
     total_revenue = serializers.DecimalField(
         source="get_total_revenue", max_digits=15, decimal_places=2, read_only=True
     )
@@ -199,7 +215,9 @@ class BarbershopListSerializer(serializers.ModelSerializer):
     formatted_phone = serializers.CharField(
         source="get_formatted_phone", read_only=True
     )
-    total_services = serializers.IntegerField(read_only=True)
+    total_services = serializers.IntegerField(
+        source="get_total_services", read_only=True
+    )
     average_service_price = serializers.DecimalField(
         source="get_average_service_price",
         max_digits=10,
