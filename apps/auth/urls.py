@@ -7,7 +7,7 @@ from .views import (
     CustomTokenVerifyView,
 )
 
-app_name = "auth"
+# app_name = "auth"
 
 urlpatterns = [
     path("token/", CustomTokenObtainPairView.as_view(), name="token_obtain"),

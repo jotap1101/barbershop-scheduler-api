@@ -96,7 +96,7 @@ class UserDetailSerializer(serializers.ModelSerializer):
 
     full_name = serializers.CharField(source="get_full_name", read_only=True)
     display_name = serializers.CharField(source="get_display_name", read_only=True)
-    age = serializers.ReadOnlyField()
+    age = serializers.IntegerField(read_only=True)
     has_profile_picture = serializers.BooleanField(read_only=True)
     role_display = serializers.CharField(
         source="get_role_display_translated", read_only=True

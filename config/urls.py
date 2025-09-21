@@ -43,8 +43,8 @@ urlpatterns = [
         name="redoc",
     ),
     # Local apps
-    path("api/v1/", include("apps.auth.urls", namespace="v1")),
-    path("api/v1/", include("apps.user.urls", namespace="v1")),
+    path("api/v1/", include("apps.auth.urls")),
+    path("api/v1/", include("apps.user.urls")),
 ]
 
 if settings.DEBUG:
