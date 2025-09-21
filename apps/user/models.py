@@ -137,3 +137,39 @@ class User(AbstractUser):
         ]
         filled_fields = sum(1 for field in fields if field)
         return round((filled_fields / len(fields)) * 100, 2)
+
+    @classmethod
+    def get_barbers_queryset(cls):
+        """Retorna queryset filtrado de barbeiros ativos"""
+        return cls.objects.filter(role=cls.Role.BARBER, is_active=True)
+
+    @classmethod
+    def get_clients_queryset(cls):
+        """Retorna queryset filtrado de clientes ativos"""
+        return cls.objects.filter(role=cls.Role.CLIENT, is_active=True)
+
+    @classmethod
+    def get_admins_queryset(cls):
+        """Retorna queryset filtrado de administradores"""
+        return cls.objects.filter(role=cls.Role.ADMIN)
+
+    @classmethod
+    def get_users_stats(cls):
+        """Retorna estatísticas dos usuários"""
+        return {
+            "total_users": cls.objects.count(),
+            "active_users": cls.objects.filter(is_active=True).count(),
+            "inactive_users": cls.objects.filter(is_active=False).count(),
+            "clients": cls.objects.filter(role=cls.Role.CLIENT).count(),
+            "barbers": cls.objects.filter(role=cls.Role.BARBER).count(),
+            "admins": cls.objects.filter(role=cls.Role.ADMIN).count(),
+            "barbershop_owners": cls.objects.filter(is_barbershop_owner=True).count(),
+        }
+
+    def can_be_deactivated_by(self, user):
+        """Verifica se o usuário pode ser desativado por outro usuário"""
+        if not user.is_admin_user():
+            return False
+        if self.is_admin_user() and user != self:
+            return False
+        return True

@@ -96,6 +96,20 @@ class UserDetailSerializer(serializers.ModelSerializer):
     """Detailed serializer for user profile"""
 
     full_name = serializers.CharField(source="get_full_name", read_only=True)
+    display_name = serializers.CharField(source="get_display_name", read_only=True)
+    age = serializers.ReadOnlyField()
+    has_profile_picture = serializers.BooleanField(
+        source="has_profile_picture", read_only=True
+    )
+    role_display = serializers.CharField(
+        source="get_role_display_translated", read_only=True
+    )
+    profile_completion = serializers.FloatField(
+        source="get_profile_completion_percentage", read_only=True
+    )
+    is_barber = serializers.BooleanField(source="is_barber", read_only=True)
+    is_client = serializers.BooleanField(source="is_client", read_only=True)
+    is_admin_user = serializers.BooleanField(source="is_admin_user", read_only=True)
 
     class Meta:
         model = User
@@ -106,15 +120,23 @@ class UserDetailSerializer(serializers.ModelSerializer):
             "first_name",
             "last_name",
             "full_name",
+            "display_name",
             "role",
+            "role_display",
             "is_barbershop_owner",
             "phone",
             "birth_date",
+            "age",
             "profile_picture",
+            "has_profile_picture",
             "bio",
             "date_joined",
             "updated_at",
             "is_active",
+            "profile_completion",
+            "is_barber",
+            "is_client",
+            "is_admin_user",
         ]
         read_only_fields = ["id", "username", "email", "date_joined", "updated_at"]
 
@@ -150,6 +172,15 @@ class UserListSerializer(serializers.ModelSerializer):
     """Simplified serializer for user lists"""
 
     full_name = serializers.CharField(source="get_full_name", read_only=True)
+    display_name = serializers.CharField(source="get_display_name", read_only=True)
+    has_profile_picture = serializers.BooleanField(
+        source="has_profile_picture", read_only=True
+    )
+    role_display = serializers.CharField(
+        source="get_role_display_translated", read_only=True
+    )
+    is_barber = serializers.BooleanField(source="is_barber", read_only=True)
+    is_client = serializers.BooleanField(source="is_client", read_only=True)
 
     class Meta:
         model = User
@@ -158,8 +189,13 @@ class UserListSerializer(serializers.ModelSerializer):
             "username",
             "email",
             "full_name",
+            "display_name",
             "role",
+            "role_display",
             "is_barbershop_owner",
             "profile_picture",
+            "has_profile_picture",
             "is_active",
+            "is_barber",
+            "is_client",
         ]

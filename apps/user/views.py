@@ -6,12 +6,6 @@ from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework_simplejwt.views import (
-    TokenBlacklistView,
-    TokenObtainPairView,
-    TokenRefreshView,
-    TokenVerifyView,
-)
 
 from apps.user.models import User
 from apps.user.permissions import (
@@ -187,21 +181,24 @@ class UserViewSet(viewsets.ModelViewSet):
         Desativa um usuário específico.
         """
         user = self.get_object()
-        if user.role == User.Role.ADMIN and request.user != user:
+
+        # Usando o novo método do modelo para verificar se pode ser desativado
+        if not user.can_be_deactivated_by(request.user):
             return Response(
-                {"error": "Não é possível desativar outro administrador."},
+                {"error": "Você não tem permissão para desativar este usuário."},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
         user.is_active = False
         user.save()
-        return Response({"message": f"Usuário {user.username} desativado com sucesso."})
+        return Response(
+            {"message": f"Usuário {user.get_display_name()} desativado com sucesso."}
+        ) @ extend_schema(
+            summary="Ativar usuário",
+            description="Ativa um usuário específico (apenas administradores).",
+            tags=["users"],
+        )
 
-    @extend_schema(
-        summary="Ativar usuário",
-        description="Ativa um usuário específico (apenas administradores).",
-        tags=["users"],
-    )
     @action(
         detail=True,
         methods=["post"],
@@ -214,7 +211,9 @@ class UserViewSet(viewsets.ModelViewSet):
         user = self.get_object()
         user.is_active = True
         user.save()
-        return Response({"message": f"Usuário {user.username} ativado com sucesso."})
+        return Response(
+            {"message": f"Usuário {user.get_display_name()} ativado com sucesso."}
+        )
 
     @extend_schema(
         summary="Listar barbeiros",
@@ -224,9 +223,9 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["get"], url_path="barbers")
     def barbers(self, request):
         """
-        Lista todos os barbeiros.
+        Lista todos os barbeiros usando o método otimizado do modelo.
         """
-        barbers = User.objects.filter(role=User.Role.BARBER, is_active=True)
+        barbers = User.get_barbers_queryset()
 
         # Aplicar filtros de busca se fornecidos
         search = request.query_params.get("search", None)
@@ -258,9 +257,9 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["get"], url_path="clients")
     def clients(self, request):
         """
-        Lista todos os clientes.
+        Lista todos os clientes usando o método otimizado do modelo.
         """
-        clients = User.objects.filter(role=User.Role.CLIENT, is_active=True)
+        clients = User.get_clients_queryset()
 
         # Aplicar filtros de busca se fornecidos
         search = request.query_params.get("search", None)
@@ -296,27 +295,84 @@ class UserViewSet(viewsets.ModelViewSet):
     )
     def stats(self, request):
         """
-        Retorna estatísticas dos usuários.
+        Retorna estatísticas dos usuários usando o método otimizado do modelo.
         """
-        total_users = User.objects.count()
-        active_users = User.objects.filter(is_active=True).count()
-        inactive_users = total_users - active_users
+        stats = User.get_users_stats()
+        return Response(stats)
 
-        by_role = {}
-        for role_choice in User.Role.choices:
-            role_key = role_choice[0]
-            role_label = role_choice[1]
-            count = User.objects.filter(role=role_key).count()
-            by_role[role_key] = {"label": role_label, "count": count}
+    @extend_schema(
+        summary="Listar administradores",
+        description="Lista todos os usuários com função de administrador.",
+        tags=["users"],
+    )
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path="admins",
+        permission_classes=[IsAuthenticated, IsAdminOrReadOnly],
+    )
+    def admins(self, request):
+        """
+        Lista todos os administradores usando o método otimizado do modelo.
+        """
+        admins = User.get_admins_queryset()
 
-        barbershop_owners = User.objects.filter(is_barbershop_owner=True).count()
+        # Aplicar filtros de busca se fornecidos
+        search = request.query_params.get("search", None)
+        if search:
+            admins = admins.filter(
+                models.Q(username__icontains=search)
+                | models.Q(email__icontains=search)
+                | models.Q(first_name__icontains=search)
+                | models.Q(last_name__icontains=search)
+            )
 
+        page = self.paginate_queryset(admins)
+        if page is not None:
+            serializer = UserListSerializer(
+                page, many=True, context={"request": request}
+            )
+            return self.get_paginated_response(serializer.data)
+
+        serializer = UserListSerializer(admins, many=True, context={"request": request})
+        return Response(serializer.data)
+
+    @extend_schema(
+        summary="Verificar tipo de usuário",
+        description="Verifica o tipo do usuário atual (cliente, barbeiro ou admin).",
+        tags=["users"],
+    )
+    @action(detail=False, methods=["get"], url_path="user-type")
+    def user_type(self, request):
+        """
+        Retorna informações sobre o tipo de usuário atual.
+        """
+        user = request.user
         return Response(
             {
-                "total_users": total_users,
-                "active_users": active_users,
-                "inactive_users": inactive_users,
-                "users_by_role": by_role,
-                "barbershop_owners": barbershop_owners,
+                "is_barber": user.is_barber(),
+                "is_client": user.is_client(),
+                "is_admin_user": user.is_admin_user(),
+                "is_barbershop_owner": user.is_barbershop_owner,
+                "role": user.role,
+                "role_display": user.get_role_display_translated(),
+            }
+        )
+
+    @extend_schema(
+        summary="Completude do perfil",
+        description="Retorna a porcentagem de completude do perfil do usuário atual.",
+        tags=["users"],
+    )
+    @action(detail=False, methods=["get"], url_path="profile-completion")
+    def profile_completion(self, request):
+        """
+        Retorna a porcentagem de completude do perfil do usuário atual.
+        """
+        user = request.user
+        return Response(
+            {
+                "completion_percentage": user.get_profile_completion_percentage(),
+                "has_profile_picture": user.has_profile_picture(),
             }
         )

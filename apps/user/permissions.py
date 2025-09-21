@@ -14,7 +14,7 @@ class IsOwnerOrAdminOrReadOnly(permissions.BasePermission):
             return True
 
         # Write permissions are only allowed to the owner of the object or admin users.
-        return obj == request.user or request.user.role == "ADMIN"
+        return obj == request.user or request.user.is_admin_user()
 
 
 class IsAdminOrReadOnly(permissions.BasePermission):
@@ -29,7 +29,7 @@ class IsAdminOrReadOnly(permissions.BasePermission):
         return (
             request.user
             and request.user.is_authenticated
-            and request.user.role == "ADMIN"
+            and request.user.is_admin_user()
         )
 
 
@@ -39,4 +39,39 @@ class IsOwnerOrAdmin(permissions.BasePermission):
     """
 
     def has_object_permission(self, request, view, obj):
-        return obj == request.user or request.user.role == "ADMIN"
+        return obj == request.user or request.user.is_admin_user()
+
+
+class IsBarber(permissions.BasePermission):
+    """
+    Custom permission to only allow barbers.
+    """
+
+    def has_permission(self, request, view):
+        return (
+            request.user and request.user.is_authenticated and request.user.is_barber()
+        )
+
+
+class IsClient(permissions.BasePermission):
+    """
+    Custom permission to only allow clients.
+    """
+
+    def has_permission(self, request, view):
+        return (
+            request.user and request.user.is_authenticated and request.user.is_client()
+        )
+
+
+class IsBarbershopOwner(permissions.BasePermission):
+    """
+    Custom permission to only allow barbershop owners.
+    """
+
+    def has_permission(self, request, view):
+        return (
+            request.user
+            and request.user.is_authenticated
+            and request.user.is_barbershop_owner
+        )
