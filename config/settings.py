@@ -57,11 +57,11 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
     # Local apps
-    "apps.users",
-    "apps.barbershops",
-    "apps.appointments",
-    "apps.payments",
-    "apps.reviews",
+    "apps.users.apps.UsersConfig",
+    "apps.barbershops.apps.BarbershopsConfig",
+    "apps.appointments.apps.AppointmentsConfig",
+    "apps.payments.apps.PaymentsConfig",
+    "apps.reviews.apps.ReviewsConfig",
 ]
 
 MIDDLEWARE = [
