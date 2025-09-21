@@ -1,0 +1,27 @@
+openapi: 3.0.3
+info:
+  title: Barbershop API
+  version: 1.0.0
+  description: A comprehensive REST API for managing barbershop operations, including
+    user authentication, appointment scheduling, payment processing, and customer
+    reviews.
+paths: {}
+components: {}
+servers:
+- url: http://127.0.0.1:8000
+  description: Development server
+- url: https://api.yourdomain.com
+  description: Production server
+tags:
+- name: users
+  description: Operations related to user management
+- name: authentication
+  description: Operations related to user authentication
+- name: barbershops
+  description: Operations related to barbershop management
+- name: appointments
+  description: Operations related to appointment scheduling and management
+- name: payments
+  description: Operations related to payment processing and management
+- name: reviews
+  description: Operations related to customer reviews and ratings
