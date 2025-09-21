@@ -58,11 +58,11 @@ INSTALLED_APPS = [
     "corsheaders",
     "django_extensions",
     # Local apps
-    "apps.users.apps.UsersConfig",
-    "apps.barbershops.apps.BarbershopsConfig",
-    "apps.appointments.apps.AppointmentsConfig",
-    "apps.payments.apps.PaymentsConfig",
-    "apps.reviews.apps.ReviewsConfig",
+    "apps.user.apps.UserConfig",
+    "apps.barbershop.apps.BarbershopConfig",
+    "apps.appointment.apps.AppointmentConfig",
+    "apps.payment.apps.PaymentConfig",
+    "apps.review.apps.ReviewConfig",
 ]
 
 MIDDLEWARE = [
@@ -174,7 +174,7 @@ MEDIA_ROOT = BASE_DIR / "media"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Custom user model
-AUTH_USER_MODEL = "users.User"
+AUTH_USER_MODEL = "user.User"
 
 # Django REST Framework settings
 REST_FRAMEWORK = {

@@ -42,8 +42,9 @@ urlpatterns = [
         SpectacularRedocView.as_view(url_name="schema"),
         name="redoc",
     ),
-    # Users app (includes JWT authentication routes)
-    path("", include("apps.users.urls")),
+    # Local apps
+    path("", include("apps.auth.urls")),
+    path("", include("apps.user.urls")),
 ]
 
 if settings.DEBUG:
