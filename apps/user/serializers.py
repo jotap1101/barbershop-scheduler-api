@@ -39,9 +39,6 @@ class UserCreateSerializer(serializers.ModelSerializer):
         validators=[validate_password],
         style={"input_type": "password"},
     )
-    password_confirm = serializers.CharField(
-        write_only=True, required=True, style={"input_type": "password"}
-    )
 
     class Meta:
         model = User
@@ -49,7 +46,6 @@ class UserCreateSerializer(serializers.ModelSerializer):
             "username",
             "email",
             "password",
-            "password_confirm",
             "first_name",
             "last_name",
             "role",
@@ -60,17 +56,11 @@ class UserCreateSerializer(serializers.ModelSerializer):
         ]
         extra_kwargs = {
             "password": {"write_only": True},
+            "first_name": {"required": False},
+            "last_name": {"required": False},
         }
 
-    def validate(self, attrs):
-        if attrs["password"] != attrs["password_confirm"]:
-            raise serializers.ValidationError(
-                {"password": "Os campos de senha não coincidem."}
-            )
-        return attrs
-
     def create(self, validated_data):
-        validated_data.pop("password_confirm", None)
         password = validated_data.pop("password")
         user = User.objects.create_user(password=password, **validated_data)
         return user
@@ -89,6 +79,14 @@ class UserUpdateSerializer(serializers.ModelSerializer):
             "profile_picture",
             "bio",
         ]
+
+    def validate_email(self, value):
+        # Email should not be changeable through update
+        raise serializers.ValidationError("Email não pode ser alterado.")
+
+    def validate_username(self, value):
+        # Username should not be changeable through update
+        raise serializers.ValidationError("Username não pode ser alterado.")
 
 
 class UserDetailSerializer(serializers.ModelSerializer):
@@ -147,21 +145,19 @@ class ChangePasswordSerializer(serializers.Serializer):
     new_password = serializers.CharField(
         required=True, validators=[validate_password], style={"input_type": "password"}
     )
-    new_password_confirm = serializers.CharField(
-        required=True, style={"input_type": "password"}
-    )
-
-    def validate(self, attrs):
-        if attrs["new_password"] != attrs["new_password_confirm"]:
-            raise serializers.ValidationError(
-                {"new_password": "Os campos de nova senha não coincidem."}
-            )
-        return attrs
 
     def validate_old_password(self, value):
         user = self.context["request"].user
         if not user.check_password(value):
             raise serializers.ValidationError("A senha atual está incorreta.")
+        return value
+
+    def validate_new_password(self, value):
+        user = self.context["request"].user
+        if user.check_password(value):
+            raise serializers.ValidationError(
+                "A nova senha deve ser diferente da senha atual."
+            )
         return value
 
 
@@ -183,6 +179,8 @@ class UserListSerializer(serializers.ModelSerializer):
             "id",
             "username",
             "email",
+            "first_name",
+            "last_name",
             "full_name",
             "display_name",
             "role",
@@ -191,6 +189,7 @@ class UserListSerializer(serializers.ModelSerializer):
             "profile_picture",
             "has_profile_picture",
             "is_active",
+            "date_joined",
             "is_barber",
             "is_client",
         ]

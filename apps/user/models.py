@@ -160,9 +160,9 @@ class User(AbstractUser):
             "total_users": cls.objects.count(),
             "active_users": cls.objects.filter(is_active=True).count(),
             "inactive_users": cls.objects.filter(is_active=False).count(),
-            "clients": cls.objects.filter(role=cls.Role.CLIENT).count(),
-            "barbers": cls.objects.filter(role=cls.Role.BARBER).count(),
-            "admins": cls.objects.filter(role=cls.Role.ADMIN).count(),
+            "clients_count": cls.objects.filter(role=cls.Role.CLIENT).count(),
+            "barbers_count": cls.objects.filter(role=cls.Role.BARBER).count(),
+            "admins_count": cls.objects.filter(role=cls.Role.ADMIN).count(),
             "barbershop_owners": cls.objects.filter(is_barbershop_owner=True).count(),
         }
 

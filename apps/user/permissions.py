@@ -75,3 +75,16 @@ class IsBarbershopOwner(permissions.BasePermission):
             and request.user.is_authenticated
             and request.user.is_barbershop_owner
         )
+
+
+class IsAdminOnly(permissions.BasePermission):
+    """
+    Custom permission to only allow admin users.
+    """
+
+    def has_permission(self, request, view):
+        return (
+            request.user
+            and request.user.is_authenticated
+            and request.user.is_admin_user()
+        )

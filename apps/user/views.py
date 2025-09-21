@@ -9,6 +9,7 @@ from rest_framework.response import Response
 
 from apps.user.models import User
 from apps.user.permissions import (
+    IsAdminOnly,
     IsAdminOrReadOnly,
     IsOwnerOrAdmin,
     IsOwnerOrAdminOrReadOnly,
@@ -103,7 +104,9 @@ class UserViewSet(viewsets.ModelViewSet):
         elif self.action in ["me", "change_password", "update_profile"]:
             permission_classes = [IsAuthenticated]
         elif self.action in ["deactivate", "activate"]:
-            permission_classes = [IsAuthenticated, IsAdminOrReadOnly]
+            permission_classes = [IsAuthenticated, IsAdminOnly]
+        elif self.action in ["stats", "admins"]:
+            permission_classes = [IsAuthenticated, IsAdminOnly]
         else:
             permission_classes = [IsAuthenticated]
 
@@ -174,7 +177,7 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(
         detail=True,
         methods=["post"],
-        permission_classes=[IsAuthenticated, IsAdminOrReadOnly],
+        permission_classes=[IsAuthenticated, IsAdminOnly],
     )
     def deactivate(self, request, pk=None):
         """
@@ -193,10 +196,6 @@ class UserViewSet(viewsets.ModelViewSet):
         user.save()
         return Response(
             {"message": f"Usuário {user.get_display_name()} desativado com sucesso."}
-        ) @ extend_schema(
-            summary="Ativar usuário",
-            description="Ativa um usuário específico (apenas administradores).",
-            tags=["users"],
         )
 
     @extend_schema(
@@ -207,7 +206,7 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(
         detail=True,
         methods=["post"],
-        permission_classes=[IsAuthenticated, IsAdminOrReadOnly],
+        permission_classes=[IsAuthenticated, IsAdminOnly],
     )
     def activate(self, request, pk=None):
         """
@@ -296,7 +295,7 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(
         detail=False,
         methods=["get"],
-        permission_classes=[IsAuthenticated, IsAdminOrReadOnly],
+        permission_classes=[IsAuthenticated, IsAdminOnly],
     )
     def stats(self, request):
         """
@@ -314,7 +313,7 @@ class UserViewSet(viewsets.ModelViewSet):
         detail=False,
         methods=["get"],
         url_path="admins",
-        permission_classes=[IsAuthenticated, IsAdminOrReadOnly],
+        permission_classes=[IsAuthenticated, IsAdminOnly],
     )
     def admins(self, request):
         """
