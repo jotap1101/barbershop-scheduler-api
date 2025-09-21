@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
+    "django_extensions",
     # Local apps
     "apps.users.apps.UsersConfig",
     "apps.barbershops.apps.BarbershopsConfig",
@@ -244,9 +245,66 @@ SPECTACULAR_SETTINGS = {
         "displayOperationId": True,
     },
     # available SwaggerUI versions: https://github.com/swagger-api/swagger-ui/releases
-    "SWAGGER_UI_DIST": "https://cdn.jsdelivr.net/npm/swagger-ui-dist@latest",  # default
-    "SWAGGER_UI_FAVICON_HREF": STATIC_URL
-    + "your_company_favicon.png",  # default is swagger favicon
+    # "SWAGGER_UI_DIST": "https://cdn.jsdelivr.net/npm/swagger-ui-dist@latest",  # default
+    # "SWAGGER_UI_FAVICON_HREF": STATIC_URL
+    # + "your_company_favicon.png",  # default is swagger favicon
+    "SWAGGER_UI_DIST": "SIDECAR",  # shorthand to use the sidecar instead
+    "SWAGGER_UI_FAVICON_HREF": "SIDECAR",
+    "REDOC_DIST": "SIDECAR",
+    "TITLE": "Barbershop API",
+    "DESCRIPTION": "A comprehensive REST API for managing barbershop operations, including user authentication, appointment scheduling, payment processing, and customer reviews.",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "COMPONENT_SPLIT_REQUEST": True,
+    "COMPONENT_NO_READ_ONLY_REQUIRED": True,
+    "SCHEMA_PATH_PREFIX": "/api/",
+    "SCHEMA_PATH_PREFIX_TRIM": True,
+    "SECURITY": [{"BearerAuth": []}],
+    "COMPONENTS": {
+        "securitySchemes": {
+            "BearerAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT",
+            }
+        }
+    },
+    "SERVERS": [
+        {
+            "url": "http://127.0.0.1:8000",
+            "description": "Development server",
+        },
+        {
+            "url": "https://api.yourdomain.com",
+            "description": "Production server",
+        },
+    ],
+    "TAGS": [
+        {
+            "name": "users",
+            "description": "Operations related to user management",
+        },
+        {
+            "name": "authentication",
+            "description": "Operations related to user authentication",
+        },
+        {
+            "name": "barbershops",
+            "description": "Operations related to barbershop management",
+        },
+        {
+            "name": "appointments",
+            "description": "Operations related to appointment scheduling and management",
+        },
+        {
+            "name": "payments",
+            "description": "Operations related to payment processing and management",
+        },
+        {
+            "name": "reviews",
+            "description": "Operations related to customer reviews and ratings",
+        },
+    ],
 }
 
 # CORS settings

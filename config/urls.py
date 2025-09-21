@@ -24,23 +24,12 @@ from drf_spectacular.views import (
     SpectacularRedocView,
     SpectacularSwaggerView,
 )
-from rest_framework_simplejwt.views import (
-    TokenBlacklistView,
-    TokenObtainPairView,
-    TokenRefreshView,
-    TokenVerifyView,
-)
 
 urlpatterns = [
     # Admin site
     path("admin/", admin.site.urls),
     # Django Rest Framework
     path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
-    # Simple JWT
-    path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
-    path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
-    path("api/token/verify/", TokenVerifyView.as_view(), name="token_verify"),
-    path("api/token/blacklist/", TokenBlacklistView.as_view(), name="token_blacklist"),
     # drf-spectacular
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
@@ -53,6 +42,8 @@ urlpatterns = [
         SpectacularRedocView.as_view(url_name="schema"),
         name="redoc",
     ),
+    # Users app (includes JWT authentication routes)
+    path("", include("apps.users.urls")),
 ]
 
 if settings.DEBUG:
