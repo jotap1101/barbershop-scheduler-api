@@ -6,6 +6,8 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView,
 )
 
+from apps.auth.serializers import CustomTokenObtainPairSerializer
+
 
 # Create your custom views here.
 @extend_schema_view(
@@ -16,7 +18,7 @@ from rest_framework_simplejwt.views import (
     )
 )
 class CustomTokenObtainPairView(TokenObtainPairView):
-    pass
+    serializer_class = CustomTokenObtainPairSerializer
 
 
 @extend_schema_view(

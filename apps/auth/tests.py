@@ -136,7 +136,13 @@ class AuthenticationE2ETestCase(APITestCase):
 
         response = self.client.post(self.token_obtain_url, login_data, format="json")
 
+        # SimpleJWT já bloqueia usuários inativos por padrão
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertIn("detail", response.data)
+        self.assertEqual(response.data["detail"], "Usuário e/ou senha incorreto(s)")
+
+        # Verificar o código de erro também
+        self.assertEqual(response.data["detail"].code, "no_active_account")
 
     def test_token_refresh_with_valid_token(self):
         """
