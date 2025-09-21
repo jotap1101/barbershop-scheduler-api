@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "django_extensions",
     # Local apps
+    "apps.auth.apps.AuthConfig",
     "apps.user.apps.UserConfig",
     "apps.barbershop.apps.BarbershopConfig",
     "apps.appointment.apps.AppointmentConfig",
