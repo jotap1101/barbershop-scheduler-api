@@ -194,6 +194,8 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 10,
     "DEFAULT_VERSIONING_CLASS": "rest_framework.versioning.NamespaceVersioning",
+    "DEFAULT_VERSION": "v1",
+    "ALLOWED_VERSIONS": ["v1"],
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
@@ -258,8 +260,13 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
     "COMPONENT_SPLIT_REQUEST": True,
     "COMPONENT_NO_READ_ONLY_REQUIRED": True,
+    "COMPONENT_SPLIT_PATCH": True,
+    "ENUM_GENERATE_CHOICE_DESCRIPTION": True,
+    "ENUM_ADD_EXPLICIT_BLANK_NULL_CHOICE": True,
+    "SORT_OPERATIONS": True,
+    "SCHEMA_COERCE_PATH_PK": True,
     "SCHEMA_PATH_PREFIX": "/api/",
-    "SCHEMA_PATH_PREFIX_TRIM": True,
+    "SCHEMA_PATH_PREFIX_TRIM": False,
     "SECURITY": [{"BearerAuth": []}],
     "COMPONENTS": {
         "securitySchemes": {
@@ -282,12 +289,12 @@ SPECTACULAR_SETTINGS = {
     ],
     "TAGS": [
         {
-            "name": "users",
-            "description": "Operations related to user management",
-        },
-        {
             "name": "authentication",
             "description": "Operations related to user authentication",
+        },
+        {
+            "name": "users",
+            "description": "Operations related to user management",
         },
         {
             "name": "barbershops",

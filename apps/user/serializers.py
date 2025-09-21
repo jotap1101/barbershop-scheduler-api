@@ -1,4 +1,3 @@
-from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
@@ -98,18 +97,16 @@ class UserDetailSerializer(serializers.ModelSerializer):
     full_name = serializers.CharField(source="get_full_name", read_only=True)
     display_name = serializers.CharField(source="get_display_name", read_only=True)
     age = serializers.ReadOnlyField()
-    has_profile_picture = serializers.BooleanField(
-        source="has_profile_picture", read_only=True
-    )
+    has_profile_picture = serializers.BooleanField(read_only=True)
     role_display = serializers.CharField(
         source="get_role_display_translated", read_only=True
     )
     profile_completion = serializers.FloatField(
         source="get_profile_completion_percentage", read_only=True
     )
-    is_barber = serializers.BooleanField(source="is_barber", read_only=True)
-    is_client = serializers.BooleanField(source="is_client", read_only=True)
-    is_admin_user = serializers.BooleanField(source="is_admin_user", read_only=True)
+    is_barber = serializers.BooleanField(read_only=True)
+    is_client = serializers.BooleanField(read_only=True)
+    is_admin_user = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = User
@@ -173,14 +170,12 @@ class UserListSerializer(serializers.ModelSerializer):
 
     full_name = serializers.CharField(source="get_full_name", read_only=True)
     display_name = serializers.CharField(source="get_display_name", read_only=True)
-    has_profile_picture = serializers.BooleanField(
-        source="has_profile_picture", read_only=True
-    )
+    has_profile_picture = serializers.BooleanField(read_only=True)
     role_display = serializers.CharField(
         source="get_role_display_translated", read_only=True
     )
-    is_barber = serializers.BooleanField(source="is_barber", read_only=True)
-    is_client = serializers.BooleanField(source="is_client", read_only=True)
+    is_barber = serializers.BooleanField(read_only=True)
+    is_client = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = User

@@ -199,6 +199,11 @@ class UserViewSet(viewsets.ModelViewSet):
             tags=["users"],
         )
 
+    @extend_schema(
+        summary="Ativar usuário",
+        description="Ativa um usuário específico (apenas administradores).",
+        tags=["users"],
+    )
     @action(
         detail=True,
         methods=["post"],
