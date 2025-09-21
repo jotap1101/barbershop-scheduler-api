@@ -42,6 +42,7 @@ class User(AbstractUser):
             subfolder_map={
                 Role.BARBER: "barbers",
                 Role.CLIENT: "clients",
+                Role.ADMIN: "admins",
             },
             subfolder_attr="role",
             default_subfolder="others",
