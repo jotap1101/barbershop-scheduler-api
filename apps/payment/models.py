@@ -108,7 +108,12 @@ class Payment(models.Model):
 
     def get_customer_name(self):
         """Retorna o nome do cliente do agendamento"""
-        return self.appointment.customer.get_display_name()
+        if hasattr(self.appointment.customer, 'customer') and self.appointment.customer.customer:
+            return self.appointment.customer.customer.get_display_name()
+        elif hasattr(self.appointment.customer, 'get_display_name'):
+            return self.appointment.customer.get_display_name()
+        else:
+            return str(self.appointment.customer)
 
     def get_service_name(self):
         """Retorna o nome do serviço do agendamento"""

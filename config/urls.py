@@ -19,11 +19,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
-from drf_spectacular.views import (
-    SpectacularAPIView,
-    SpectacularRedocView,
-    SpectacularSwaggerView,
-)
+from drf_spectacular.views import (SpectacularAPIView, SpectacularRedocView,
+                                   SpectacularSwaggerView)
 
 urlpatterns = [
     # Admin site
@@ -47,6 +44,7 @@ urlpatterns = [
     path("api/v1/", include("apps.user.urls")),
     path("api/v1/", include("apps.barbershop.urls")),
     path("api/v1/", include("apps.appointment.urls")),
+    path("api/v1/", include("apps.payment.urls")),
 ]
 
 if settings.DEBUG:
