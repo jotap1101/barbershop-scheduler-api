@@ -40,12 +40,12 @@ class IsBarberOrBarbershopOwnerOrAdmin(permissions.BasePermission):
         if hasattr(request.user, 'role') and request.user.role == "ADMIN":
             return True
         
-        # Verificar se é barbeiro
-        if hasattr(request.user, 'is_barber') and request.user.is_barber:
+        # Verificar se é barbeiro (usando property)
+        if request.user.is_barber:
             return True
         
         # Verificar se é dono de barbearia
-        if hasattr(request.user, 'is_barbershop_owner') and request.user.is_barbershop_owner:
+        if request.user.is_barbershop_owner:
             return True
         
         return False
@@ -82,12 +82,12 @@ class IsBarberScheduleOwnerOrAdmin(permissions.BasePermission):
             if hasattr(request.user, 'role') and request.user.role == "ADMIN":
                 return True
             
-            # Verificar se é barbeiro
-            if hasattr(request.user, 'is_barber') and request.user.is_barber:
+            # Verificar se é barbeiro (chamando o método)
+            if request.user.is_barber():
                 return True
             
             # Verificar se é dono de barbearia
-            if hasattr(request.user, 'is_barbershop_owner') and request.user.is_barbershop_owner:
+            if request.user.is_barbershop_owner:
                 return True
             
             return False
@@ -108,12 +108,12 @@ class IsCustomerOrBarbershopOwnerOrAdmin(permissions.BasePermission):
         if hasattr(request.user, 'role') and request.user.role == "ADMIN":
             return True
         
-        # Verificar se é cliente
-        if hasattr(request.user, 'is_customer') and request.user.is_customer:
+        # Verificar se é cliente (usando property)
+        if request.user.is_customer:
             return True
         
         # Verificar se é dono de barbearia
-        if hasattr(request.user, 'is_barbershop_owner') and request.user.is_barbershop_owner:
+        if request.user.is_barbershop_owner:
             return True
         
         return False
@@ -159,15 +159,15 @@ class CanManageAppointments(permissions.BasePermission):
             return True
         
         # Barbeiros podem gerenciar seus próprios agendamentos
-        if hasattr(request.user, 'is_barber') and request.user.is_barber:
+        if request.user.is_barber:
             return True
         
         # Donos de barbearia podem gerenciar agendamentos de suas barbearias
-        if hasattr(request.user, 'is_barbershop_owner') and request.user.is_barbershop_owner:
+        if request.user.is_barbershop_owner:
             return True
         
         # Clientes podem ver e criar agendamentos
-        if hasattr(request.user, 'is_customer') and request.user.is_customer:
+        if request.user.is_customer:
             return view.action in ['list', 'retrieve', 'create']
         
         return False

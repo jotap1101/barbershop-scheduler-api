@@ -259,12 +259,6 @@ class AppointmentCreateSerializer(serializers.ModelSerializer):
                 "A data e hora de início devem ser antes da data e hora de término"
             )
         
-        # Validate that barber works at the barbershop
-        if not data["barbershop"].barbers.filter(id=data["barber"].id).exists():
-            raise serializers.ValidationError(
-                "O barbeiro não trabalha nesta barbearia"
-            )
-        
         # Validate that customer is registered at the barbershop
         if data["customer"].barbershop != data["barbershop"]:
             raise serializers.ValidationError(
