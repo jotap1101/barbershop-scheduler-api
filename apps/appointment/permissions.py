@@ -1,190 +1,173 @@
-from django.contrib.auth import get_user_model
 from rest_framework import permissions
 
-User = get_user_model()
 
-
-class IsBarberOrAdmin(permissions.BasePermission):
+class IsAppointmentOwnerOrBarbershopOwner(permissions.BasePermission):
     """
-    Permissão para barbeiros e administradores
+    Permissão para permitir apenas o cliente dono do agendamento,
+    o barbeiro do agendamento, o dono da barbearia ou admins.
     """
-
-    def has_permission(self, request, view):
-        if not request.user or not request.user.is_authenticated:
-            return False
-
-        return (
-            request.user.role in [User.Role.BARBER, User.Role.ADMIN]
-            or request.user.is_barbershop_owner
-        )
-
-
-class IsBarberSchedulePermission(permissions.BasePermission):
-    """
-    Permissão específica para BarberSchedule:
-    - Qualquer usuário autenticado pode listar e visualizar horários
-    - Apenas barbeiro proprietário ou dono da barbearia pode criar/editar/deletar
-    """
-
-    def has_permission(self, request, view):
-        if not request.user or not request.user.is_authenticated:
-            return False
-
-        # Permitir leitura para todos os usuários autenticados
-        if request.method in permissions.READONLY_METHODS:
-            return True
-
-        # Para criação, edição e deleção, verificar se é barbeiro ou dono
-        return (
-            request.user.role in [User.Role.BARBER, User.Role.ADMIN]
-            or request.user.is_barbershop_owner
-        )
 
     def has_object_permission(self, request, view, obj):
-        if not request.user or not request.user.is_authenticated:
-            return False
-
-        # Administradores têm acesso total
-        if request.user.role == User.Role.ADMIN:
+        # Verificar se é admin
+        if hasattr(request.user, 'role') and request.user.role == "ADMIN":
             return True
-
-        # Leitura permitida para todos os usuários autenticados
-        if request.method in permissions.READONLY_METHODS:
+        
+        # Verificar se é o cliente do agendamento
+        if obj.customer.customer == request.user:
             return True
-
-        # Para modificações, apenas o barbeiro ou proprietário da barbearia
-        return (
-            obj.barber == request.user  # O próprio barbeiro
-            or obj.barbershop.owner == request.user  # Proprietário da barbearia
-        )
-
-
-class IsOwnerOrBarberOrAdmin(permissions.BasePermission):
-    """
-    Permissão para proprietário do recurso, barbeiros ou administradores
-    """
-
-    def has_permission(self, request, view):
-        return request.user and request.user.is_authenticated
-
-    def has_object_permission(self, request, view, obj):
-        if request.user.role == User.Role.ADMIN:
+        
+        # Verificar se é o barbeiro do agendamento
+        if obj.barber == request.user:
             return True
-
-        # Para agendamentos, verificar se é cliente, barbeiro ou proprietário da barbearia
-        if hasattr(obj, "customer"):  # Appointment
-            return (
-                obj.customer.customer == request.user  # Cliente do agendamento
-                or obj.barber == request.user  # Barbeiro do agendamento
-                or obj.barbershop.owner == request.user  # Proprietário da barbearia
-            )
-
-        # Para horários de barbeiro, verificar se é o próprio barbeiro ou proprietário da barbearia
-        if hasattr(obj, "barber"):  # BarberSchedule
-            return (
-                obj.barber == request.user  # O próprio barbeiro
-                or obj.barbershop.owner == request.user  # Proprietário da barbearia
-            )
-
+        
+        # Verificar se é o dono da barbearia
+        if obj.barbershop.owner == request.user:
+            return True
+        
         return False
 
 
-class IsAppointmentParticipant(permissions.BasePermission):
+class IsBarberOrBarbershopOwnerOrAdmin(permissions.BasePermission):
     """
-    Permissão para participantes do agendamento (cliente, barbeiro, proprietário da barbearia)
-    """
-
-    def has_permission(self, request, view):
-        return request.user and request.user.is_authenticated
-
-    def has_object_permission(self, request, view, obj):
-        if request.user.role == User.Role.ADMIN:
-            return True
-
-        # Verificar se é cliente, barbeiro ou proprietário da barbearia
-        return (
-            obj.customer.customer == request.user  # Cliente
-            or obj.barber == request.user  # Barbeiro
-            or obj.barbershop.owner == request.user  # Proprietário da barbearia
-        )
-
-
-class IsBarberScheduleOwner(permissions.BasePermission):
-    """
-    Permissão para o barbeiro proprietário do horário ou proprietário da barbearia
+    Permissão para permitir apenas barbeiros, donos de barbearia ou admins.
     """
 
     def has_permission(self, request, view):
-        return request.user and request.user.is_authenticated
+        if not request.user or not request.user.is_authenticated:
+            return False
+        
+        # Verificar se é admin
+        if hasattr(request.user, 'role') and request.user.role == "ADMIN":
+            return True
+        
+        # Verificar se é barbeiro
+        if hasattr(request.user, 'is_barber') and request.user.is_barber:
+            return True
+        
+        # Verificar se é dono de barbearia
+        if hasattr(request.user, 'is_barbershop_owner') and request.user.is_barbershop_owner:
+            return True
+        
+        return False
+
+
+class IsBarberScheduleOwnerOrAdmin(permissions.BasePermission):
+    """
+    Permissão para permitir apenas o barbeiro dono da agenda,
+    o dono da barbearia ou admins.
+    """
 
     def has_object_permission(self, request, view, obj):
-        if request.user.role == User.Role.ADMIN:
+        # Verificar se é admin
+        if hasattr(request.user, 'role') and request.user.role == "ADMIN":
             return True
+        
+        # Verificar se é o barbeiro da agenda
+        if obj.barber == request.user:
+            return True
+        
+        # Verificar se é o dono da barbearia
+        if obj.barbershop.owner == request.user:
+            return True
+        
+        return False
 
-        return (
-            obj.barber == request.user  # O próprio barbeiro
-            or obj.barbershop.owner == request.user  # Proprietário da barbearia
-        )
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+        
+        # Para criação, verificar se é barbeiro ou dono de barbearia
+        if view.action == 'create':
+            # Verificar se é admin
+            if hasattr(request.user, 'role') and request.user.role == "ADMIN":
+                return True
+            
+            # Verificar se é barbeiro
+            if hasattr(request.user, 'is_barber') and request.user.is_barber:
+                return True
+            
+            # Verificar se é dono de barbearia
+            if hasattr(request.user, 'is_barbershop_owner') and request.user.is_barbershop_owner:
+                return True
+            
+            return False
+        
+        return True
+
+
+class IsCustomerOrBarbershopOwnerOrAdmin(permissions.BasePermission):
+    """
+    Permissão para permitir apenas clientes, donos de barbearia ou admins.
+    """
+
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+        
+        # Verificar se é admin
+        if hasattr(request.user, 'role') and request.user.role == "ADMIN":
+            return True
+        
+        # Verificar se é cliente
+        if hasattr(request.user, 'is_customer') and request.user.is_customer:
+            return True
+        
+        # Verificar se é dono de barbearia
+        if hasattr(request.user, 'is_barbershop_owner') and request.user.is_barbershop_owner:
+            return True
+        
+        return False
+
+
+class IsAppointmentParticipantOrAdmin(permissions.BasePermission):
+    """
+    Permissão para permitir apenas participantes do agendamento
+    (cliente, barbeiro, dono da barbearia) ou admins.
+    """
+
+    def has_object_permission(self, request, view, obj):
+        # Verificar se é admin
+        if hasattr(request.user, 'role') and request.user.role == "ADMIN":
+            return True
+        
+        # Verificar se é o cliente do agendamento
+        if obj.customer.customer == request.user:
+            return True
+        
+        # Verificar se é o barbeiro do agendamento
+        if obj.barber == request.user:
+            return True
+        
+        # Verificar se é o dono da barbearia
+        if obj.barbershop.owner == request.user:
+            return True
+        
+        return False
 
 
 class CanManageAppointments(permissions.BasePermission):
     """
-    Permissão para gerenciar agendamentos (barbeiros, proprietários de barbearias ou admins)
+    Permissão para verificar se o usuário pode gerenciar agendamentos.
     """
 
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
-
-        return (
-            request.user.role in [User.Role.BARBER, User.Role.ADMIN]
-            or request.user.is_barbershop_owner
-        )
-
-    def has_object_permission(self, request, view, obj):
-        if request.user.role == User.Role.ADMIN:
+        
+        # Admins podem gerenciar todos os agendamentos
+        if hasattr(request.user, 'role') and request.user.role == "ADMIN":
             return True
-
-        # Verificar se é barbeiro do agendamento ou proprietário da barbearia
-        return obj.barber == request.user or obj.barbershop.owner == request.user
-
-
-class CanCreateAppointment(permissions.BasePermission):
-    """
-    Permissão para criar agendamentos (todos os usuários autenticados)
-    """
-
-    def has_permission(self, request, view):
-        return request.user and request.user.is_authenticated
-
-
-class IsReadOnlyOrOwner(permissions.BasePermission):
-    """
-    Permissão somente leitura para todos, escrita apenas para proprietários
-    """
-
-    def has_permission(self, request, view):
-        if request.method in permissions.READONLY_METHODS:
+        
+        # Barbeiros podem gerenciar seus próprios agendamentos
+        if hasattr(request.user, 'is_barber') and request.user.is_barber:
             return True
-
-        return request.user and request.user.is_authenticated
-
-    def has_object_permission(self, request, view, obj):
-        if request.method in permissions.READONLY_METHODS:
+        
+        # Donos de barbearia podem gerenciar agendamentos de suas barbearias
+        if hasattr(request.user, 'is_barbershop_owner') and request.user.is_barbershop_owner:
             return True
-
-        if request.user.role == User.Role.ADMIN:
-            return True
-
-        # Para modificações, verificar se é proprietário
-        if hasattr(obj, "customer"):  # Appointment
-            return (
-                obj.customer.customer == request.user
-                or obj.barber == request.user
-                or obj.barbershop.owner == request.user
-            )
-
-        if hasattr(obj, "barber"):  # BarberSchedule
-            return obj.barber == request.user or obj.barbershop.owner == request.user
-
+        
+        # Clientes podem ver e criar agendamentos
+        if hasattr(request.user, 'is_customer') and request.user.is_customer:
+            return view.action in ['list', 'retrieve', 'create']
+        
         return False
