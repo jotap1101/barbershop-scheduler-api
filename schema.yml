@@ -5,6 +5,12 @@ info:
   description: A comprehensive REST API for managing barbershop operations, including
     user authentication, appointment scheduling, payment processing, and customer
     reviews.
+  contact:
+    name: API Support Team
+    email: jotap1101.joaopedro@gmail.com
+  license:
+    name: MIT License
+    url: https://opensource.org/licenses/MIT
 paths:
   /api/v1/appointments/:
     get:
@@ -6164,6 +6170,10 @@ components:
 servers:
 - url: http://127.0.0.1:8000
   description: Development server
+  variables:
+    port:
+      default: '8000'
+      description: Porta do servidor de desenvolvimento
 - url: https://api.yourdomain.com
   description: Production server
 tags:

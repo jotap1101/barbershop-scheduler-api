@@ -249,7 +249,7 @@ REST_FRAMEWORK = {
     },
 }
 
-# JWT Settings
+# Django REST Framework Simple JWT settings
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
@@ -288,32 +288,53 @@ SIMPLE_JWT = {
 
 # drf-spectacular settings
 SPECTACULAR_SETTINGS = {
+    "TITLE": "Barbershop API",
+    "DESCRIPTION": "A comprehensive REST API for managing barbershop operations, including user authentication, appointment scheduling, payment processing, and customer reviews.",
+    "VERSION": "1.0.0",
+    "CONTACT": {
+        "name": "API Support Team",
+        "email": "jotap1101.joaopedro@gmail.com",
+    },
+    "LICENSE": {
+        "name": "MIT License",
+        "url": "https://opensource.org/licenses/MIT"
+    },
     "SWAGGER_UI_SETTINGS": {
         "deepLinking": True,
         "persistAuthorization": True,
         "displayOperationId": True,
+        "requestSnippetsEnabled": True,
+        "requestSnippets": {
+            "generators": {
+                "curl_bash": {"title": "cURL (bash)"},
+                "curl_powershell": {"title": "cURL (PowerShell)"},
+                "curl_cmd": {"title": "cURL (CMD)"},
+                "javascript_fetch": {"title": "JavaScript (fetch)"},
+                "javascript_xhr": {"title": "JavaScript (XHR)"},
+                "python_requests": {"title": "Python (requests)"},
+                "php_curl": {"title": "PHP (cURL)"},
+                "java_okhttp": {"title": "Java (OkHttp)"}
+            },
+            "defaultExpanded": False,
+            "languages": None
+        }
     },
-    # available SwaggerUI versions: https://github.com/swagger-api/swagger-ui/releases
-    # "SWAGGER_UI_DIST": "https://cdn.jsdelivr.net/npm/swagger-ui-dist@latest",  # default
-    # "SWAGGER_UI_FAVICON_HREF": STATIC_URL
-    # + "your_company_favicon.png",  # default is swagger favicon
-    "SWAGGER_UI_DIST": "SIDECAR",  # shorthand to use the sidecar instead
+    "SWAGGER_UI_DIST": "SIDECAR",
     "SWAGGER_UI_FAVICON_HREF": "SIDECAR",
     "REDOC_DIST": "SIDECAR",
-    "TITLE": "Barbershop API",
-    "DESCRIPTION": "A comprehensive REST API for managing barbershop operations, including user authentication, appointment scheduling, payment processing, and customer reviews.",
-    "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
     "COMPONENT_SPLIT_REQUEST": True,
     "COMPONENT_NO_READ_ONLY_REQUIRED": True,
     "COMPONENT_SPLIT_PATCH": True,
     "ENUM_GENERATE_CHOICE_DESCRIPTION": True,
     "ENUM_ADD_EXPLICIT_BLANK_NULL_CHOICE": True,
-    # "ENUM_NAME_OVERRIDES": {
-    #     "apps.payment.models.Payment.Status": "PaymentStatusEnum",
-    #     "apps.payment.models.Payment.Method": "PaymentMethodEnum",
-    #     "apps.appointment.models.Appointment.Status": "AppointmentStatusEnum",
-    # },
+    "ENUM_NAME_OVERRIDES": {
+        "apps.appointment.models.Appointment.Status": "AppointmentStatusEnum",
+        "apps.payment.models.Payment.Status": "PaymentStatusEnum",
+        "apps.payment.models.Payment.Method": "PaymentMethodEnum",
+        "apps.review.models.Review.RATING_CHOICES": "ReviewRatingEnum",
+        "apps.user.models.User.USER_TYPE_CHOICES": "UserTypeEnum",
+    },
     "SORT_OPERATIONS": True,
     "SCHEMA_COERCE_PATH_PK": True,
     "SCHEMA_PATH_PREFIX": "/api/",
@@ -325,6 +346,7 @@ SPECTACULAR_SETTINGS = {
                 "type": "http",
                 "scheme": "bearer",
                 "bearerFormat": "JWT",
+                "description": "JWT token obtained from the login endpoint",
             }
         }
     },
@@ -332,6 +354,12 @@ SPECTACULAR_SETTINGS = {
         {
             "url": "http://127.0.0.1:8000",
             "description": "Development server",
+            "variables": {
+                "port": {
+                    "default": "8000",
+                    "description": "Porta do servidor de desenvolvimento"
+                }
+            }
         },
         {
             "url": "https://api.yourdomain.com",
@@ -366,11 +394,9 @@ SPECTACULAR_SETTINGS = {
     ],
 }
 
-# ============================================
-# CORS SETTINGS - Django CORS Headers
-# ============================================
 
-# Permitir todas as origens em desenvolvimento (ajustar para produção)
+
+# django-cors-headers settings
 CORS_ALLOW_ALL_ORIGINS = True
 
 # Para produção, usar lista específica:
@@ -383,7 +409,6 @@ CORS_ALLOW_ALL_ORIGINS = True
 #     # Adicionar domínios de produção quando disponíveis
 # ]
 
-# Headers permitidos
 CORS_ALLOW_HEADERS = [
     "accept",
     "accept-encoding",
@@ -397,7 +422,6 @@ CORS_ALLOW_HEADERS = [
     "cache-control",
 ]
 
-# Métodos HTTP permitidos
 CORS_ALLOW_METHODS = [
     "DELETE",
     "GET",
@@ -407,18 +431,13 @@ CORS_ALLOW_METHODS = [
     "PUT",
 ]
 
-# Permitir cookies em requisições CORS
 CORS_ALLOW_CREDENTIALS = True
 
-# Tempo de cache para requisições preflight
 CORS_PREFLIGHT_MAX_AGE = 86400  # 24 horas
 
-# ============================================
-# CONFIGURAÇÃO DE LOGGING PARA MIDDLEWARES
-# ============================================
-
-# Criar diretório de logs se não existir
+# logging settings
 LOGS_DIR = BASE_DIR / "logs"
+
 if not LOGS_DIR.exists():
     LOGS_DIR.mkdir(exist_ok=True)
 
