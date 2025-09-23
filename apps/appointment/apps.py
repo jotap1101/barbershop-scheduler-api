@@ -6,3 +6,4 @@ class AppointmentConfig(AppConfig):
     name = "apps.appointment"
     verbose_name = "Appointment"
     verbose_name_plural = "Appointments"
+    app_label = "appointment"

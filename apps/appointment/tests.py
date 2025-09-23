@@ -11,14 +11,14 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from apps.barbershop.models import Barbershop, BarbershopCustomer, Service
 
-from .models import Appointment, BarberSchedule
-from .permissions import (IsAppointmentOwnerOrBarbershopOwner,
+from apps.appointment.models import Appointment, BarberSchedule
+from apps.appointment.permissions import (IsAppointmentOwnerOrBarbershopOwner,
                           IsBarberOrBarbershopOwnerOrAdmin,
                           IsBarberScheduleOwnerOrAdmin)
-from .serializers import (AppointmentCreateSerializer, AppointmentSerializer,
+from apps.appointment.serializers import (AppointmentCreateSerializer, AppointmentSerializer,
                           BarberScheduleCreateSerializer,
                           BarberScheduleSerializer)
-from .utils import (check_appointment_conflict, get_available_time_slots,
+from apps.appointment.utils import (check_appointment_conflict, get_available_time_slots,
                     get_next_available_appointment_slot, is_barber_available,
                     validate_appointment_datetime)
 

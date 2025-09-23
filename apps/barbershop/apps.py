@@ -6,3 +6,5 @@ class BarbershopConfig(AppConfig):
     name = "apps.barbershop"
     verbose_name = "Barbershop"
     verbose_name_plural = "Barbershops"
+    app_label = "barbershop"
+    

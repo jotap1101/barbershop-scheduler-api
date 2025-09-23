@@ -6,3 +6,5 @@ class AuthConfig(AppConfig):
     name = "apps.auth"
     label = "apps_auth"
     verbose_name = "Authentication"
+    verbose_name_plural = "Authentications"
+    app_label = "auth"

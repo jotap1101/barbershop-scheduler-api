@@ -10,11 +10,11 @@ from rest_framework.test import APIClient, APITestCase
 from apps.appointment.models import Appointment
 from apps.barbershop.models import Barbershop, BarbershopCustomer, Service
 
-from .models import Payment
-from .serializers import (PaymentConfirmSerializer, PaymentCreateSerializer,
+from apps.payment.models import Payment
+from apps.payment.serializers import (PaymentConfirmSerializer, PaymentCreateSerializer,
                           PaymentRefundSerializer, PaymentSerializer,
                           PaymentUpdateSerializer)
-from .utils import (calculate_payment_statistics,
+from apps.payment.utils import (calculate_payment_statistics,
                     create_payment_from_appointment,
                     validate_payment_confirmation, validate_payment_creation,
                     validate_payment_refund)

@@ -6,3 +6,4 @@ class ReviewConfig(AppConfig):
     name = "apps.review"
     verbose_name = "Review"
     verbose_name_plural = "Reviewsreview"
+    app_label = "review"

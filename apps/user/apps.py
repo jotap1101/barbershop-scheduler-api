@@ -6,3 +6,4 @@ class UserConfig(AppConfig):
     name = "apps.user"
     verbose_name = "User"
     verbose_name_plural = "Users"
+    app_label = "user"
