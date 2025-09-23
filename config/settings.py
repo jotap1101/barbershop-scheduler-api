@@ -68,11 +68,12 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "corsheaders.middleware.CorsMiddleware",  # Django CORS Headers
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "middleware.api_tracking_middleware.APIUsageTrackingMiddleware",  # API Tracking
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.middleware.locale.LocaleMiddleware",
@@ -320,5 +321,130 @@ SPECTACULAR_SETTINGS = {
     ],
 }
 
-# CORS settings
+# ============================================
+# CORS SETTINGS - Django CORS Headers
+# ============================================
+
+# Permitir todas as origens em desenvolvimento (ajustar para produção)
 CORS_ALLOW_ALL_ORIGINS = True
+
+# Para produção, usar lista específica:
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:3000",  # React dev
+#     "http://localhost:3001",  # React production build
+#     "http://127.0.0.1:3000",  # Local development
+#     "http://localhost:8080",  # Vue/Angular dev
+#     "http://localhost:4200",  # Angular dev
+#     # Adicionar domínios de produção quando disponíveis
+# ]
+
+# Headers permitidos
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+    "cache-control",
+]
+
+# Métodos HTTP permitidos
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
+
+# Permitir cookies em requisições CORS
+CORS_ALLOW_CREDENTIALS = True
+
+# Tempo de cache para requisições preflight
+CORS_PREFLIGHT_MAX_AGE = 86400  # 24 horas
+
+# ============================================
+# CONFIGURAÇÃO DE LOGGING PARA MIDDLEWARES
+# ============================================
+
+# Criar diretório de logs se não existir
+LOGS_DIR = BASE_DIR / "logs"
+if not LOGS_DIR.exists():
+    LOGS_DIR.mkdir(exist_ok=True)
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
+            "style": "{",
+        },
+        "api_tracking": {
+            "format": "{asctime} - {levelname} - {message}",
+            "style": "{",
+        },
+        "json": {
+            "format": "{message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "level": "INFO",
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+        "api_usage_file": {
+            "level": "INFO",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": LOGS_DIR / "api_usage.log",
+            "maxBytes": 50 * 1024 * 1024,  # 50 MB
+            "backupCount": 10,
+            "formatter": "json",
+        },
+        "api_errors_file": {
+            "level": "ERROR",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": LOGS_DIR / "api_errors.log",
+            "maxBytes": 10 * 1024 * 1024,  # 10 MB
+            "backupCount": 5,
+            "formatter": "api_tracking",
+        },
+        "django_file": {
+            "level": "INFO",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": LOGS_DIR / "django.log",
+            "maxBytes": 10 * 1024 * 1024,  # 10 MB
+            "backupCount": 5,
+            "formatter": "verbose",
+        },
+    },
+    "loggers": {
+        "api_usage": {
+            "handlers": ["api_usage_file", "console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "django": {
+            "handlers": ["django_file", "console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "django.request": {
+            "handlers": ["api_errors_file", "console"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+        # Logger raiz para desenvolvimento
+        "": {
+            "handlers": ["console"],
+            "level": "INFO",
+        },
+    },
+}
