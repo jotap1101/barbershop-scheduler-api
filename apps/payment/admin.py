@@ -45,70 +45,99 @@ class PaymentAdmin(admin.ModelAdmin):
         "get_formatted_amount",
         "get_payment_age_days",
     ]
-    
+    list_per_page = 10
+    list_max_show_all = 100
+    date_hierarchy = "payment_date"
+    actions_on_top = True
+    actions_on_bottom = True
+    list_select_related = [
+        "appointment",
+        "appointment__customer",
+        "appointment__service",
+        "appointment__barbershop",
+    ]
+
     fieldsets = (
-        ("Informações Básicas", {
-            "fields": (
-                "id",
-                "appointment",
-                "amount",
-                "get_formatted_amount",
-                "status",
-                "method",
-            )
-        }),
-        ("Detalhes do Pagamento", {
-            "fields": (
-                "transaction_id",
-                "payment_date",
-                "notes",
-            )
-        }),
-        ("Informações do Agendamento", {
-            "fields": (
-                "get_customer_name",
-                "get_service_name",
-                "get_barbershop_name",
-            ),
-            "classes": ("collapse",)
-        }),
-        ("Metadados", {
-            "fields": (
-                "created_at",
-                "updated_at",
-                "get_payment_age_days",
-            ),
-            "classes": ("collapse",)
-        }),
+        (
+            "Informações Básicas",
+            {
+                "fields": (
+                    "id",
+                    "appointment",
+                    "amount",
+                    "get_formatted_amount",
+                    "status",
+                    "method",
+                )
+            },
+        ),
+        (
+            "Detalhes do Pagamento",
+            {
+                "fields": (
+                    "transaction_id",
+                    "payment_date",
+                    "notes",
+                )
+            },
+        ),
+        (
+            "Informações do Agendamento",
+            {
+                "fields": (
+                    "get_customer_name",
+                    "get_service_name",
+                    "get_barbershop_name",
+                ),
+                "classes": ("collapse",),
+            },
+        ),
+        (
+            "Metadados",
+            {
+                "fields": (
+                    "created_at",
+                    "updated_at",
+                    "get_payment_age_days",
+                ),
+                "classes": ("collapse",),
+            },
+        ),
     )
-    
+
     def get_customer_name(self, obj):
         return obj.get_customer_name()
+
     get_customer_name.short_description = "Cliente"
-    
+
     def get_service_name(self, obj):
         return obj.get_service_name()
+
     get_service_name.short_description = "Serviço"
-    
+
     def get_barbershop_name(self, obj):
         return obj.get_barbershop_name()
+
     get_barbershop_name.short_description = "Barbearia"
-    
+
     def formatted_amount(self, obj):
         return obj.get_formatted_amount()
+
     formatted_amount.short_description = "Valor"
-    
+
     def get_formatted_amount(self, obj):
         return obj.get_formatted_amount()
+
     get_formatted_amount.short_description = "Valor Formatado"
-    
+
     def get_payment_age_days(self, obj):
         age = obj.get_payment_age_days()
         if age is None:
             return "Não pago"
         return f"{age} dias"
+
     get_payment_age_days.short_description = "Idade do Pagamento"
-    
+
     def get_method_display_colored(self, obj):
         colors = {
             Payment.Method.PIX: "#00D4AA",
@@ -120,10 +149,13 @@ class PaymentAdmin(admin.ModelAdmin):
         icon = obj.get_method_display_icon()
         return format_html(
             '<span style="color: {};">{} {}</span>',
-            color, icon, obj.get_method_display()
+            color,
+            icon,
+            obj.get_method_display(),
         )
+
     get_method_display_colored.short_description = "Método"
-    
+
     def get_status_display_colored(self, obj):
         colors = {
             Payment.Status.PENDING: "#FF9800",
@@ -134,12 +166,15 @@ class PaymentAdmin(admin.ModelAdmin):
         icon = obj.get_status_display_icon()
         return format_html(
             '<span style="color: {}; font-weight: bold;">{} {}</span>',
-            color, icon, obj.get_status_display()
+            color,
+            icon,
+            obj.get_status_display(),
         )
+
     get_status_display_colored.short_description = "Status"
-    
+
     actions = ["mark_as_paid", "mark_as_refunded"]
-    
+
     def mark_as_paid(self, request, queryset):
         """Ação para marcar pagamentos como pagos"""
         updated = 0
@@ -147,13 +182,11 @@ class PaymentAdmin(admin.ModelAdmin):
             if payment.status == Payment.Status.PENDING:
                 payment.mark_as_paid()
                 updated += 1
-        
-        self.message_user(
-            request,
-            f"{updated} pagamento(s) marcado(s) como pago(s)."
-        )
+
+        self.message_user(request, f"{updated} pagamento(s) marcado(s) como pago(s).")
+
     mark_as_paid.short_description = "Marcar como pago"
-    
+
     def mark_as_refunded(self, request, queryset):
         """Ação para marcar pagamentos como reembolsados"""
         updated = 0
@@ -161,13 +194,13 @@ class PaymentAdmin(admin.ModelAdmin):
             if payment.status == Payment.Status.PAID:
                 payment.mark_as_refunded()
                 updated += 1
-        
+
         self.message_user(
-            request,
-            f"{updated} pagamento(s) marcado(s) como reembolsado(s)."
+            request, f"{updated} pagamento(s) marcado(s) como reembolsado(s)."
         )
+
     mark_as_refunded.short_description = "Marcar como reembolsado"
-    
+
     def has_delete_permission(self, request, obj=None):
         """Previne exclusão de pagamentos pagos ou reembolsados"""
         if obj and obj.status in [Payment.Status.PAID, Payment.Status.REFUNDED]:
