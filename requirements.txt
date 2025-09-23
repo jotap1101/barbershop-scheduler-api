@@ -13,6 +13,7 @@ djangorestframework_simplejwt==5.5.1
 drf-spectacular==0.28.0
 drf-spectacular-sidecar==2025.9.1
 Faker==37.8.0
+gunicorn==23.0.0
 httpie==3.2.4
 idna==3.10
 inflection==0.5.1
@@ -22,6 +23,7 @@ Markdown==3.9
 markdown-it-py==4.0.0
 mdurl==0.1.2
 multidict==6.6.4
+packaging==25.0
 pillow==11.3.0
 Pygments==2.19.2
 PyJWT==2.10.1
