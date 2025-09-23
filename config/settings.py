@@ -198,10 +198,27 @@ REST_FRAMEWORK = {
     "DEFAULT_VERSION": "v1",
     "ALLOWED_VERSIONS": ["v1"],
     "DEFAULT_THROTTLE_CLASSES": [
-        "rest_framework.throttling.AnonRateThrottle",
-        "rest_framework.throttling.UserRateThrottle",
+        "utils.throttles.custom_throttles.CustomAnonRateThrottle",
+        "utils.throttles.custom_throttles.CustomUserRateThrottle",
+        "rest_framework.throttling.ScopedRateThrottle",
     ],
-    "DEFAULT_THROTTLE_RATES": {"anon": "100/day", "user": "1000/day"},
+    "DEFAULT_THROTTLE_RATES": {
+        # Rates para usuários anônimos e autenticados
+        "anon": "50/hour",  # 50 requisições por hora para não autenticados
+        "user": "500/hour",  # 500 requisições por hora para autenticados
+        # Rates específicos por escopo (endpoints críticos)
+        "auth": "10/hour",  # Login/registro - 10 tentativas por hora
+        "password_reset": "3/hour",  # Reset de senha - 3 tentativas por hora
+        "appointments": "30/hour",  # Agendamentos - 30 por hora
+        "payments": "20/hour",  # Pagamentos - 20 por hora
+        "reviews": "15/hour",  # Reviews - 15 por hora
+        "search": "100/hour",  # Buscas - 100 por hora
+        # Rates para operações administrativas
+        "admin": "1000/hour",  # Operações administrativas
+        # Rate limiters por minuto para operações muito sensíveis
+        "auth_burst": "5/min",  # Autenticação - burst protection
+        "payment_burst": "3/min",  # Pagamentos - burst protection
+    },
 }
 
 # JWT Settings

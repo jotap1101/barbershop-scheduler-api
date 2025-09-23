@@ -10,18 +10,24 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .models import Appointment, BarberSchedule
-from .permissions import (IsAppointmentOwnerOrBarbershopOwner,
-                          IsBarberOrBarbershopOwnerOrAdmin,
-                          IsBarberScheduleOwnerOrAdmin)
-from .serializers import (AppointmentCreateSerializer,
-                          AppointmentDetailSerializer,
-                          AppointmentListSerializer, AppointmentSerializer,
-                          AppointmentUpdateSerializer,
-                          BarberScheduleCreateSerializer,
-                          BarberScheduleDetailSerializer,
-                          BarberScheduleListSerializer,
-                          BarberScheduleSerializer,
-                          BarberScheduleUpdateSerializer)
+from .permissions import (
+    IsAppointmentOwnerOrBarbershopOwner,
+    IsBarberOrBarbershopOwnerOrAdmin,
+    IsBarberScheduleOwnerOrAdmin,
+)
+from .serializers import (
+    AppointmentCreateSerializer,
+    AppointmentDetailSerializer,
+    AppointmentListSerializer,
+    AppointmentSerializer,
+    AppointmentUpdateSerializer,
+    BarberScheduleCreateSerializer,
+    BarberScheduleDetailSerializer,
+    BarberScheduleListSerializer,
+    BarberScheduleSerializer,
+    BarberScheduleUpdateSerializer,
+)
+from utils.throttles.custom_throttles import AppointmentThrottle, SearchThrottle
 
 
 @extend_schema_view(
@@ -64,6 +70,7 @@ class BarberScheduleViewSet(viewsets.ModelViewSet):
     queryset = BarberSchedule.objects.select_related("barber", "barbershop").all()
     serializer_class = BarberScheduleSerializer
     permission_classes = [IsAuthenticated]
+    throttle_classes = [SearchThrottle]  # Throttling para buscas de horários
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,
@@ -153,7 +160,7 @@ class BarberScheduleViewSet(viewsets.ModelViewSet):
         Retorna os horários disponíveis para uma agenda específica em uma data.
         """
         schedule = self.get_object()
-        
+
         # Parâmetros da requisição
         date_param = request.query_params.get("date")
         if not date_param:
@@ -178,13 +185,15 @@ class BarberScheduleViewSet(viewsets.ModelViewSet):
 
         # Obter horários disponíveis
         slots = schedule.get_available_slots(target_date, service_duration)
-        
-        return Response({
-            "date": target_date,
-            "weekday": target_date.weekday(),
-            "available_slots": [slot.strftime("%H:%M") for slot in slots],
-            "total_slots": len(slots),
-        })
+
+        return Response(
+            {
+                "date": target_date,
+                "weekday": target_date.weekday(),
+                "available_slots": [slot.strftime("%H:%M") for slot in slots],
+                "total_slots": len(slots),
+            }
+        )
 
 
 @extend_schema_view(
@@ -229,6 +238,7 @@ class AppointmentViewSet(viewsets.ModelViewSet):
     ).all()
     serializer_class = AppointmentSerializer
     permission_classes = [IsAuthenticated]
+    throttle_classes = [AppointmentThrottle]  # Throttling específico para agendamentos
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,
@@ -333,7 +343,9 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         # Filtros de data
         today_only = request.query_params.get("today", "false").lower() == "true"
         if today_only:
-            appointments = appointments.filter(start_datetime__date=timezone.now().date())
+            appointments = appointments.filter(
+                start_datetime__date=timezone.now().date()
+            )
 
         upcoming_only = request.query_params.get("upcoming", "false").lower() == "true"
         if upcoming_only:
@@ -361,9 +373,9 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         """
         Retorna os agendamentos do barbeiro autenticado.
         """
-        appointments = Appointment.objects.filter(
-            barber=request.user
-        ).select_related("customer__customer", "barber", "service", "barbershop")
+        appointments = Appointment.objects.filter(barber=request.user).select_related(
+            "customer__customer", "barber", "service", "barbershop"
+        )
 
         # Filtros
         status_filter = request.query_params.get("status")
@@ -377,7 +389,9 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         # Filtros de data
         today_only = request.query_params.get("today", "false").lower() == "true"
         if today_only:
-            appointments = appointments.filter(start_datetime__date=timezone.now().date())
+            appointments = appointments.filter(
+                start_datetime__date=timezone.now().date()
+            )
 
         upcoming_only = request.query_params.get("upcoming", "false").lower() == "true"
         if upcoming_only:

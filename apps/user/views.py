@@ -22,6 +22,7 @@ from apps.user.serializers import (
     UserSerializer,
     UserUpdateSerializer,
 )
+from utils.throttles.custom_throttles import PasswordResetThrottle, AdminThrottle
 
 
 # Create your views here.
@@ -65,6 +66,7 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
+    throttle_classes = [AdminThrottle]  # Throttling para operações administrativas
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,
@@ -111,6 +113,17 @@ class UserViewSet(viewsets.ModelViewSet):
             permission_classes = [IsAuthenticated]
 
         return [permission() for permission in permission_classes]
+
+    def get_throttles(self):
+        """
+        Retorna throttles apropriados baseado na ação.
+        """
+        if self.action == "change_password":
+            throttle_classes = [PasswordResetThrottle]
+        else:
+            throttle_classes = self.throttle_classes
+
+        return [throttle() for throttle in throttle_classes]
 
     @extend_schema(
         summary="Meu perfil",

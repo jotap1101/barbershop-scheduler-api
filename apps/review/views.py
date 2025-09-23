@@ -10,19 +10,29 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from apps.review.models import Review
-from apps.review.permissions import (CanCreateReview, CanDeleteReview,
-                                     CanUpdateOwnReview,
-                                     CanViewReviewStatistics,
-                                     IsReviewOwnerOrBarbershopOwnerOrAdmin)
-from apps.review.serializers import (ReviewCreateSerializer,
-                                     ReviewDetailSerializer,
-                                     ReviewListSerializer, ReviewSerializer,
-                                     ReviewStatisticsSerializer,
-                                     ReviewUpdateSerializer)
-from apps.review.utils import (calculate_review_statistics, get_review_trends,
-                               get_top_rated_barbers,
-                               get_top_rated_barbershops,
-                               get_top_rated_services)
+from apps.review.permissions import (
+    CanCreateReview,
+    CanDeleteReview,
+    CanUpdateOwnReview,
+    CanViewReviewStatistics,
+    IsReviewOwnerOrBarbershopOwnerOrAdmin,
+)
+from apps.review.serializers import (
+    ReviewCreateSerializer,
+    ReviewDetailSerializer,
+    ReviewListSerializer,
+    ReviewSerializer,
+    ReviewStatisticsSerializer,
+    ReviewUpdateSerializer,
+)
+from apps.review.utils import (
+    calculate_review_statistics,
+    get_review_trends,
+    get_top_rated_barbers,
+    get_top_rated_barbershops,
+    get_top_rated_services,
+)
+from utils.throttles.custom_throttles import ReviewThrottle
 
 
 @extend_schema_view(
@@ -67,10 +77,11 @@ class ReviewViewSet(viewsets.ModelViewSet):
         "barbershop_customer__customer",
         "barber",
         "service",
-        "barbershop"
+        "barbershop",
     ).all()
     serializer_class = ReviewSerializer
     permission_classes = [IsAuthenticated]
+    throttle_classes = [ReviewThrottle]  # Throttling para reviews
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,
@@ -81,14 +92,14 @@ class ReviewViewSet(viewsets.ModelViewSet):
         "barber",
         "service",
         "barbershop",
-        "barbershop_customer"
+        "barbershop_customer",
     ]
     search_fields = [
         "comment",
         "barber__first_name",
         "barber__last_name",
         "service__name",
-        "barbershop__name"
+        "barbershop__name",
     ]
     ordering_fields = ["rating", "created_at", "updated_at"]
     ordering = ["-created_at"]
@@ -112,7 +123,10 @@ class ReviewViewSet(viewsets.ModelViewSet):
         Define as permissões baseadas na ação.
         """
         if self.action in ["list", "retrieve"]:
-            permission_classes = [IsAuthenticated, IsReviewOwnerOrBarbershopOwnerOrAdmin]
+            permission_classes = [
+                IsAuthenticated,
+                IsReviewOwnerOrBarbershopOwnerOrAdmin,
+            ]
         elif self.action == "create":
             permission_classes = [IsAuthenticated, CanCreateReview]
         elif self.action in ["update", "partial_update"]:
@@ -123,7 +137,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
             permission_classes = [IsAuthenticated, CanViewReviewStatistics]
         else:
             permission_classes = [IsAuthenticated]
-        
+
         return [permission() for permission in permission_classes]
 
     def get_queryset(self):
@@ -132,23 +146,23 @@ class ReviewViewSet(viewsets.ModelViewSet):
         """
         user = self.request.user
         queryset = super().get_queryset()
-        
+
         # Admins veem todas as avaliações
-        if hasattr(user, 'role') and user.role == "ADMIN":
+        if hasattr(user, "role") and user.role == "ADMIN":
             return queryset
-        
+
         # Donos de barbearia veem avaliações de suas barbearias
-        if hasattr(user, 'is_barbershop_owner') and user.is_barbershop_owner:
+        if hasattr(user, "is_barbershop_owner") and user.is_barbershop_owner:
             return queryset.filter(barbershop__owner=user)
-        
+
         # Barbeiros veem suas próprias avaliações
-        if hasattr(user, 'role') and user.role == "BARBER":
+        if hasattr(user, "role") and user.role == "BARBER":
             return queryset.filter(barber=user)
-        
+
         # Clientes veem apenas suas próprias avaliações
-        if hasattr(user, 'role') and user.role == "CLIENT":
+        if hasattr(user, "role") and user.role == "CLIENT":
             return queryset.filter(barbershop_customer__customer=user)
-        
+
         # Caso padrão: sem acesso
         return queryset.none()
 
@@ -165,21 +179,21 @@ class ReviewViewSet(viewsets.ModelViewSet):
         Para barbeiros: avaliações que receberam
         """
         user = request.user
-        
-        if hasattr(user, 'role') and user.role == "CLIENT":
+
+        if hasattr(user, "role") and user.role == "CLIENT":
             # Cliente vê avaliações que fez
             reviews = self.get_queryset().filter(barbershop_customer__customer=user)
-        elif hasattr(user, 'role') and user.role == "BARBER":
+        elif hasattr(user, "role") and user.role == "BARBER":
             # Barbeiro vê avaliações que recebeu
             reviews = self.get_queryset().filter(barber=user)
         else:
             reviews = self.get_queryset()
-        
+
         page = self.paginate_queryset(reviews)
         if page is not None:
             serializer = ReviewListSerializer(page, many=True)
             return self.get_paginated_response(serializer.data)
-        
+
         serializer = ReviewListSerializer(reviews, many=True)
         return Response(serializer.data)
 
@@ -194,17 +208,14 @@ class ReviewViewSet(viewsets.ModelViewSet):
         Retorna estatísticas das avaliações.
         """
         queryset = self.get_queryset()
-        barbershop = request.query_params.get('barbershop')
-        barber = request.query_params.get('barber')
-        service = request.query_params.get('service')
-        
+        barbershop = request.query_params.get("barbershop")
+        barber = request.query_params.get("barber")
+        service = request.query_params.get("service")
+
         stats = calculate_review_statistics(
-            queryset=queryset,
-            barbershop=barbershop,
-            barber=barber,
-            service=service
+            queryset=queryset, barbershop=barbershop, barber=barber, service=service
         )
-        
+
         serializer = ReviewStatisticsSerializer(stats)
         return Response(serializer.data)
 
@@ -218,17 +229,18 @@ class ReviewViewSet(viewsets.ModelViewSet):
         """
         Retorna tendências das avaliações nos últimos X dias.
         """
-        days = int(request.query_params.get('days', 30))
-        barbershop_id = request.query_params.get('barbershop')
-        
+        days = int(request.query_params.get("days", 30))
+        barbershop_id = request.query_params.get("barbershop")
+
         barbershop = None
         if barbershop_id:
             try:
                 from apps.barbershop.models import Barbershop
+
                 barbershop = Barbershop.objects.get(id=barbershop_id)
             except Barbershop.DoesNotExist:
                 pass
-        
+
         trends = get_review_trends(days=days, barbershop=barbershop)
         return Response(trends)
 
@@ -242,59 +254,62 @@ class ReviewViewSet(viewsets.ModelViewSet):
         """
         Retorna rankings de melhor avaliação.
         """
-        category = request.query_params.get('category', 'all')  # all, barbers, services, barbershops
-        limit = int(request.query_params.get('limit', 10))
-        barbershop_id = request.query_params.get('barbershop')
-        
+        category = request.query_params.get(
+            "category", "all"
+        )  # all, barbers, services, barbershops
+        limit = int(request.query_params.get("limit", 10))
+        barbershop_id = request.query_params.get("barbershop")
+
         barbershop = None
         if barbershop_id:
             try:
                 from apps.barbershop.models import Barbershop
+
                 barbershop = Barbershop.objects.get(id=barbershop_id)
             except Barbershop.DoesNotExist:
                 pass
-        
+
         result = {}
-        
-        if category in ['all', 'barbers']:
+
+        if category in ["all", "barbers"]:
             top_barbers = get_top_rated_barbers(limit=limit, barbershop=barbershop)
-            result['top_barbers'] = [
+            result["top_barbers"] = [
                 {
-                    'id': barber.id,
-                    'name': barber.get_display_name(),
-                    'avg_rating': float(barber.avg_rating),
-                    'total_reviews': barber.total_reviews
+                    "id": barber.id,
+                    "name": barber.get_display_name(),
+                    "avg_rating": float(barber.avg_rating),
+                    "total_reviews": barber.total_reviews,
                 }
                 for barber in top_barbers
             ]
-        
-        if category in ['all', 'services']:
+
+        if category in ["all", "services"]:
             top_services = get_top_rated_services(limit=limit, barbershop=barbershop)
-            result['top_services'] = [
+            result["top_services"] = [
                 {
-                    'id': service.id,
-                    'name': service.name,
-                    'avg_rating': float(service.avg_rating),
-                    'total_reviews': service.total_reviews,
-                    'price': str(service.price),
-                    'barbershop_name': service.barbershop.name
+                    "id": service.id,
+                    "name": service.name,
+                    "avg_rating": float(service.avg_rating),
+                    "total_reviews": service.total_reviews,
+                    "price": str(service.price),
+                    "barbershop_name": service.barbershop.name,
                 }
                 for service in top_services
             ]
-        
-        if category in ['all', 'barbershops'] and not barbershop:
+
+        if category in ["all", "barbershops"] and not barbershop:
             top_barbershops = get_top_rated_barbershops(limit=limit)
-            result['top_barbershops'] = [
+            result["top_barbershops"] = [
                 {
-                    'id': shop.id,
-                    'name': shop.name,
-                    'avg_rating': float(shop.avg_rating),
-                    'total_reviews': shop.total_reviews,
-                    'address': shop.address
+                    "id": shop.id,
+                    "name": shop.name,
+                    "avg_rating": float(shop.avg_rating),
+                    "total_reviews": shop.total_reviews,
+                    "address": shop.address,
                 }
                 for shop in top_barbershops
             ]
-        
+
         return Response(result)
 
     @extend_schema(
@@ -307,27 +322,29 @@ class ReviewViewSet(viewsets.ModelViewSet):
         """
         Retorna avaliações por período (dia, semana, mês).
         """
-        period = request.query_params.get('period', 'week')  # day, week, month
-        
-        if period == 'day':
+        period = request.query_params.get("period", "week")  # day, week, month
+
+        if period == "day":
             date_filter = timezone.now().date()
             reviews = self.get_queryset().filter(created_at__date=date_filter)
-        elif period == 'week':
+        elif period == "week":
             from datetime import timedelta
+
             start_week = timezone.now() - timedelta(days=7)
             reviews = self.get_queryset().filter(created_at__gte=start_week)
-        elif period == 'month':
+        elif period == "month":
             from datetime import timedelta
+
             start_month = timezone.now() - timedelta(days=30)
             reviews = self.get_queryset().filter(created_at__gte=start_month)
         else:
             reviews = self.get_queryset()
-        
+
         page = self.paginate_queryset(reviews)
         if page is not None:
             serializer = ReviewListSerializer(page, many=True)
             return self.get_paginated_response(serializer.data)
-        
+
         serializer = ReviewListSerializer(reviews, many=True)
         return Response(serializer.data)
 
@@ -341,11 +358,11 @@ class ReviewViewSet(viewsets.ModelViewSet):
         """
         Retorna avaliações filtradas por rating.
         """
-        rating_param = request.query_params.get('rating')
-        rating_type = request.query_params.get('type')  # positive, negative, neutral
-        
+        rating_param = request.query_params.get("rating")
+        rating_type = request.query_params.get("type")  # positive, negative, neutral
+
         queryset = self.get_queryset()
-        
+
         if rating_param:
             try:
                 rating = int(rating_param)
@@ -354,17 +371,17 @@ class ReviewViewSet(viewsets.ModelViewSet):
             except ValueError:
                 pass
         elif rating_type:
-            if rating_type == 'positive':
+            if rating_type == "positive":
                 queryset = queryset.filter(rating__gte=4)
-            elif rating_type == 'negative':
+            elif rating_type == "negative":
                 queryset = queryset.filter(rating__lte=2)
-            elif rating_type == 'neutral':
+            elif rating_type == "neutral":
                 queryset = queryset.filter(rating=3)
-        
+
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = ReviewListSerializer(page, many=True)
             return self.get_paginated_response(serializer.data)
-        
+
         serializer = ReviewListSerializer(queryset, many=True)
         return Response(serializer.data)

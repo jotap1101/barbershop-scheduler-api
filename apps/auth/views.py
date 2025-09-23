@@ -7,6 +7,7 @@ from rest_framework_simplejwt.views import (
 )
 
 from apps.auth.serializers import CustomTokenObtainPairSerializer
+from utils.throttles.custom_throttles import AuthThrottle, AuthBurstThrottle
 
 
 # Create your custom views here.
@@ -19,6 +20,7 @@ from apps.auth.serializers import CustomTokenObtainPairSerializer
 )
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
+    throttle_classes = [AuthThrottle, AuthBurstThrottle]
 
 
 @extend_schema_view(
@@ -29,7 +31,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     )
 )
 class CustomTokenRefreshView(TokenRefreshView):
-    pass
+    throttle_classes = [AuthThrottle]
 
 
 @extend_schema_view(
@@ -40,7 +42,7 @@ class CustomTokenRefreshView(TokenRefreshView):
     )
 )
 class CustomTokenVerifyView(TokenVerifyView):
-    pass
+    throttle_classes = [AuthThrottle]
 
 
 @extend_schema_view(
@@ -51,4 +53,4 @@ class CustomTokenVerifyView(TokenVerifyView):
     )
 )
 class CustomTokenBlacklistView(TokenBlacklistView):
-    pass
+    throttle_classes = [AuthThrottle]

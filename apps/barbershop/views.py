@@ -34,6 +34,7 @@ from .serializers import (
     ServiceSerializer,
     ServiceUpdateSerializer,
 )
+from utils.throttles.custom_throttles import SearchThrottle
 
 
 @extend_schema_view(
@@ -76,6 +77,7 @@ class BarbershopViewSet(viewsets.ModelViewSet):
     queryset = Barbershop.objects.all()
     serializer_class = BarbershopSerializer
     permission_classes = [IsAuthenticated]
+    throttle_classes = [SearchThrottle]  # Throttling para busca de barbearias
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,
@@ -430,6 +432,7 @@ class ServiceViewSet(viewsets.ModelViewSet):
     queryset = Service.objects.all()
     serializer_class = ServiceSerializer
     permission_classes = [IsAuthenticated]
+    throttle_classes = [SearchThrottle]  # Throttling para busca de serviços
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,
