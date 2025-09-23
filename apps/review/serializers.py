@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -153,19 +154,19 @@ class ReviewDetailSerializer(serializers.ModelSerializer):
     barbershop_details = serializers.SerializerMethodField()
     
     # Campos calculados
-    rating_stars = serializers.ReadOnlyField(source='get_rating_stars')
-    rating_display_with_stars = serializers.ReadOnlyField(source='get_rating_display_with_stars')
-    customer_name = serializers.ReadOnlyField(source='get_customer_name')
-    barber_name = serializers.ReadOnlyField(source='get_barber_name')
-    service_name = serializers.ReadOnlyField(source='get_service_name')
-    barbershop_name = serializers.ReadOnlyField(source='get_barbershop_name')
-    short_comment = serializers.ReadOnlyField(source='get_short_comment')
-    review_age_days = serializers.ReadOnlyField(source='get_review_age_days')
-    is_positive_review = serializers.ReadOnlyField()
-    is_negative_review = serializers.ReadOnlyField()
-    is_neutral_review = serializers.ReadOnlyField()
-    is_recent_review = serializers.ReadOnlyField()
-    has_comment = serializers.ReadOnlyField()
+    rating_stars = serializers.CharField(source='get_rating_stars', read_only=True)
+    rating_display_with_stars = serializers.CharField(source='get_rating_display_with_stars', read_only=True)
+    customer_name = serializers.CharField(source='get_customer_name', read_only=True)
+    barber_name = serializers.CharField(source='get_barber_name', read_only=True)
+    service_name = serializers.CharField(source='get_service_name', read_only=True)
+    barbershop_name = serializers.CharField(source='get_barbershop_name', read_only=True)
+    short_comment = serializers.CharField(source='get_short_comment', read_only=True)
+    review_age_days = serializers.IntegerField(source='get_review_age_days', read_only=True)
+    is_positive_review = serializers.BooleanField(read_only=True)
+    is_negative_review = serializers.BooleanField(read_only=True)
+    is_neutral_review = serializers.BooleanField(read_only=True)
+    is_recent_review = serializers.BooleanField(read_only=True)
+    has_comment = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = Review
@@ -198,7 +199,8 @@ class ReviewDetailSerializer(serializers.ModelSerializer):
             'updated_at'
         ]
 
-    def get_barbershop_customer_details(self, obj):
+    @extend_schema_field(serializers.DictField)
+    def get_barbershop_customer_details(self, obj) -> dict:
         """Retorna detalhes do cliente da barbearia"""
         return {
             'id': obj.barbershop_customer.id,
@@ -206,7 +208,8 @@ class ReviewDetailSerializer(serializers.ModelSerializer):
             'last_visit': obj.barbershop_customer.last_visit
         }
 
-    def get_barber_details(self, obj):
+    @extend_schema_field(serializers.DictField)
+    def get_barber_details(self, obj) -> dict:
         """Retorna detalhes do barbeiro"""
         return {
             'id': obj.barber.id,
@@ -214,7 +217,8 @@ class ReviewDetailSerializer(serializers.ModelSerializer):
             'username': obj.barber.username
         }
 
-    def get_service_details(self, obj):
+    @extend_schema_field(serializers.DictField)
+    def get_service_details(self, obj) -> dict:
         """Retorna detalhes do serviço"""
         return {
             'id': obj.service.id,
@@ -225,7 +229,8 @@ class ReviewDetailSerializer(serializers.ModelSerializer):
             'formatted_duration': obj.service.get_formatted_duration()
         }
 
-    def get_barbershop_details(self, obj):
+    @extend_schema_field(serializers.DictField)
+    def get_barbershop_details(self, obj) -> dict:
         """Retorna detalhes da barbearia"""
         return {
             'id': obj.barbershop.id,
@@ -240,20 +245,20 @@ class ReviewListSerializer(serializers.ModelSerializer):
     Serializer otimizado para listagem de avaliações.
     """
     # Campos básicos de relacionamento
-    customer_name = serializers.ReadOnlyField(source='get_customer_name')
-    barber_name = serializers.ReadOnlyField(source='get_barber_name')
-    service_name = serializers.ReadOnlyField(source='get_service_name')
-    barbershop_name = serializers.ReadOnlyField(source='get_barbershop_name')
+    customer_name = serializers.CharField(source='get_customer_name', read_only=True)
+    barber_name = serializers.CharField(source='get_barber_name', read_only=True)
+    service_name = serializers.CharField(source='get_service_name', read_only=True)
+    barbershop_name = serializers.CharField(source='get_barbershop_name', read_only=True)
     
     # Campos calculados
-    rating_stars = serializers.ReadOnlyField(source='get_rating_stars')
-    rating_display_with_stars = serializers.ReadOnlyField(source='get_rating_display_with_stars')
-    short_comment = serializers.ReadOnlyField(source='get_short_comment')
-    review_age_days = serializers.ReadOnlyField(source='get_review_age_days')
-    is_positive_review = serializers.ReadOnlyField()
-    is_negative_review = serializers.ReadOnlyField()
-    is_recent_review = serializers.ReadOnlyField()
-    has_comment = serializers.ReadOnlyField()
+    rating_stars = serializers.CharField(source='get_rating_stars', read_only=True)
+    rating_display_with_stars = serializers.CharField(source='get_rating_display_with_stars', read_only=True)
+    short_comment = serializers.CharField(source='get_short_comment', read_only=True)
+    review_age_days = serializers.IntegerField(source='get_review_age_days', read_only=True)
+    is_positive_review = serializers.BooleanField(read_only=True)
+    is_negative_review = serializers.BooleanField(read_only=True)
+    is_recent_review = serializers.BooleanField(read_only=True)
+    has_comment = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = Review
