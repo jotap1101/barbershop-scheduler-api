@@ -57,6 +57,8 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
     "django_extensions",
+    # Utility apps
+    "utils.cache.apps.CacheConfig",
     # Local apps
     "apps.auth.apps.AuthConfig",
     "apps.user.apps.UserConfig",
@@ -108,6 +110,32 @@ DATABASES = {
         "ENGINE": env("DB_ENGINE"),
         "NAME": BASE_DIR / env("DB_NAME"),
     }
+}
+
+# Cache configuration
+# https://docs.djangoproject.com/en/5.2/topics/cache/
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "LOCATION": "cache_table",
+    },
+    # Cache específico para throttling (separado do cache de dados)
+    "throttle": {
+        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "LOCATION": "throttle_cache_table",
+    },
+}
+
+# Cache settings para diferentes tipos de dados
+CACHE_TTL = {
+    # Cache de curto prazo (5 minutos) para dados que mudam frequentemente
+    "SHORT": 60 * 5,  # 5 minutos
+    # Cache médio (30 minutos) para dados semi-estáticos
+    "MEDIUM": 60 * 30,  # 30 minutos
+    # Cache longo (2 horas) para dados raramente alterados
+    "LONG": 60 * 60 * 2,  # 2 horas
+    # Cache de listagens (15 minutos)
+    "LISTING": 60 * 15,  # 15 minutos
 }
 
 # Database configuration for production environment

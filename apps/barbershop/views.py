@@ -35,6 +35,7 @@ from .serializers import (
     ServiceUpdateSerializer,
 )
 from utils.throttles.custom_throttles import SearchThrottle
+from utils.cache import CompleteCacheMixin, CacheKeys
 
 
 @extend_schema_view(
@@ -69,9 +70,10 @@ from utils.throttles.custom_throttles import SearchThrottle
         tags=["barbershops"],
     ),
 )
-class BarbershopViewSet(viewsets.ModelViewSet):
+class BarbershopViewSet(CompleteCacheMixin, viewsets.ModelViewSet):
     """
     ViewSet para gerenciar barbearias com operações CRUD e ações customizadas.
+    Inclui cache automático para listagens e detalhes com invalidação inteligente.
     """
 
     queryset = Barbershop.objects.all()
@@ -87,6 +89,14 @@ class BarbershopViewSet(viewsets.ModelViewSet):
     search_fields = ["name", "description", "address", "email"]
     ordering_fields = ["created_at", "updated_at", "name"]
     ordering = ["-created_at"]
+
+    # Configuração de cache
+    cache_model_name = "barbershop"
+    cache_ttl_type = "LISTING"  # 15 minutos para listagens
+    cache_key_prefix = CacheKeys.BARBERSHOP_PREFIX
+    additional_cache_patterns = [
+        CacheKeys.SERVICE_PREFIX
+    ]  # Serviços podem ser afetados
 
     def get_serializer_class(self):
         """
@@ -424,9 +434,10 @@ class BarbershopViewSet(viewsets.ModelViewSet):
         tags=["barbershops"],
     ),
 )
-class ServiceViewSet(viewsets.ModelViewSet):
+class ServiceViewSet(CompleteCacheMixin, viewsets.ModelViewSet):
     """
     ViewSet para gerenciar serviços com operações CRUD e ações customizadas.
+    Inclui cache automático para listagens e detalhes com invalidação inteligente.
     """
 
     queryset = Service.objects.all()
@@ -442,6 +453,14 @@ class ServiceViewSet(viewsets.ModelViewSet):
     search_fields = ["name", "description"]
     ordering_fields = ["created_at", "updated_at", "name", "price"]
     ordering = ["-created_at"]
+
+    # Configuração de cache
+    cache_model_name = "service"
+    cache_ttl_type = "LISTING"  # 15 minutos para listagens
+    cache_key_prefix = CacheKeys.SERVICE_PREFIX
+    additional_cache_patterns = [
+        CacheKeys.BARBERSHOP_PREFIX
+    ]  # Barbearias podem ser afetadas
 
     def get_serializer_class(self):
         """

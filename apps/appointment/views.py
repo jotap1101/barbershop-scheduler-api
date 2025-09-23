@@ -28,6 +28,7 @@ from .serializers import (
     BarberScheduleUpdateSerializer,
 )
 from utils.throttles.custom_throttles import AppointmentThrottle, SearchThrottle
+from utils.cache import CompleteCacheMixin, CacheKeys, cache_manager
 
 
 @extend_schema_view(
@@ -62,9 +63,10 @@ from utils.throttles.custom_throttles import AppointmentThrottle, SearchThrottle
         tags=["appointments"],
     ),
 )
-class BarberScheduleViewSet(viewsets.ModelViewSet):
+class BarberScheduleViewSet(CompleteCacheMixin, viewsets.ModelViewSet):
     """
     ViewSet para gerenciar agendas dos barbeiros com operações CRUD e ações customizadas.
+    Inclui cache automático para listagens e detalhes com invalidação inteligente.
     """
 
     queryset = BarberSchedule.objects.select_related("barber", "barbershop").all()
@@ -80,6 +82,12 @@ class BarberScheduleViewSet(viewsets.ModelViewSet):
     search_fields = ["barber__first_name", "barber__last_name", "barbershop__name"]
     ordering_fields = ["weekday", "start_time", "end_time"]
     ordering = ["weekday", "start_time"]
+
+    # Configuração de cache
+    cache_model_name = "barberschedule"
+    cache_ttl_type = "SHORT"  # 5 minutos para horários (dados mais dinâmicos)
+    cache_key_prefix = CacheKeys.APPOINTMENT_PREFIX
+    additional_cache_patterns = [CacheKeys.BARBERSHOP_PREFIX]
 
     def get_serializer_class(self):
         """
@@ -158,6 +166,7 @@ class BarberScheduleViewSet(viewsets.ModelViewSet):
     def available_slots(self, request, pk=None):
         """
         Retorna os horários disponíveis para uma agenda específica em uma data.
+        Inclui cache inteligente baseado na data e duração do serviço.
         """
         schedule = self.get_object()
 
@@ -183,17 +192,34 @@ class BarberScheduleViewSet(viewsets.ModelViewSet):
         except ValueError:
             service_duration = 30
 
-        # Obter horários disponíveis
+        # Chave de cache específica para horários disponíveis
+        cache_key = cache_manager.generate_cache_key(
+            CacheKeys.AVAILABLE_SLOTS,
+            schedule_id=pk,
+            date=date_param,
+            duration=service_duration,
+        )
+
+        # Tenta buscar do cache primeiro
+        cached_slots = cache_manager.cache.get(cache_key)
+        if cached_slots is not None:
+            return Response(cached_slots)
+
+        # Se não está em cache, calcula horários disponíveis
         slots = schedule.get_available_slots(target_date, service_duration)
 
-        return Response(
-            {
-                "date": target_date,
-                "weekday": target_date.weekday(),
-                "available_slots": [slot.strftime("%H:%M") for slot in slots],
-                "total_slots": len(slots),
-            }
-        )
+        response_data = {
+            "date": target_date,
+            "weekday": target_date.weekday(),
+            "available_slots": [slot.strftime("%H:%M") for slot in slots],
+            "total_slots": len(slots),
+        }
+
+        # Cachea os horários (cache curto pois dados podem mudar rapidamente)
+        ttl = cache_manager.get_ttl("SHORT")  # 5 minutos
+        cache_manager.cache.set(cache_key, response_data, ttl)
+
+        return Response(response_data)
 
 
 @extend_schema_view(
@@ -228,9 +254,10 @@ class BarberScheduleViewSet(viewsets.ModelViewSet):
         tags=["appointments"],
     ),
 )
-class AppointmentViewSet(viewsets.ModelViewSet):
+class AppointmentViewSet(CompleteCacheMixin, viewsets.ModelViewSet):
     """
     ViewSet para gerenciar agendamentos com operações CRUD e ações customizadas.
+    Inclui cache automático para listagens e detalhes com invalidação inteligente.
     """
 
     queryset = Appointment.objects.select_related(
@@ -261,6 +288,13 @@ class AppointmentViewSet(viewsets.ModelViewSet):
     ]
     ordering_fields = ["start_datetime", "created_at", "updated_at"]
     ordering = ["-start_datetime"]
+
+    # Configuração de cache
+    cache_model_name = "appointment"
+    cache_ttl_type = "SHORT"  # 5 minutos para agendamentos (dados muito dinâmicos)
+    cache_key_prefix = CacheKeys.APPOINTMENT_PREFIX
+    additional_cache_patterns = [CacheKeys.BARBERSHOP_PREFIX, CacheKeys.SERVICE_PREFIX]
+    cache_vary_on_user = True  # Cache varia por usuário (dados pessoais)
 
     def get_serializer_class(self):
         """

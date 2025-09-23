@@ -33,6 +33,7 @@ from apps.review.utils import (
     get_top_rated_services,
 )
 from utils.throttles.custom_throttles import ReviewThrottle
+from utils.cache import CompleteCacheMixin, CacheKeys, cache_manager
 
 
 @extend_schema_view(
@@ -67,9 +68,10 @@ from utils.throttles.custom_throttles import ReviewThrottle
         tags=["reviews"],
     ),
 )
-class ReviewViewSet(viewsets.ModelViewSet):
+class ReviewViewSet(CompleteCacheMixin, viewsets.ModelViewSet):
     """
     ViewSet para gerenciar avaliações com operações CRUD e ações customizadas.
+    Inclui cache automático para listagens e detalhes com invalidação inteligente.
     """
 
     queryset = Review.objects.select_related(
@@ -103,6 +105,13 @@ class ReviewViewSet(viewsets.ModelViewSet):
     ]
     ordering_fields = ["rating", "created_at", "updated_at"]
     ordering = ["-created_at"]
+
+    # Configuração de cache
+    cache_model_name = "review"
+    cache_ttl_type = "LISTING"  # 15 minutos para reviews
+    cache_key_prefix = CacheKeys.REVIEW_PREFIX
+    additional_cache_patterns = [CacheKeys.BARBERSHOP_PREFIX, CacheKeys.SERVICE_PREFIX]
+    cache_vary_on_user = True  # Cache varia por usuário
 
     def get_serializer_class(self):
         """
