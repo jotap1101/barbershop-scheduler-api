@@ -295,10 +295,7 @@ SPECTACULAR_SETTINGS = {
         "name": "API Support Team",
         "email": "jotap1101.joaopedro@gmail.com",
     },
-    "LICENSE": {
-        "name": "MIT License",
-        "url": "https://opensource.org/licenses/MIT"
-    },
+    "LICENSE": {"name": "MIT License", "url": "https://opensource.org/licenses/MIT"},
     "SWAGGER_UI_SETTINGS": {
         "deepLinking": True,
         "persistAuthorization": True,
@@ -313,11 +310,11 @@ SPECTACULAR_SETTINGS = {
                 "javascript_xhr": {"title": "JavaScript (XHR)"},
                 "python_requests": {"title": "Python (requests)"},
                 "php_curl": {"title": "PHP (cURL)"},
-                "java_okhttp": {"title": "Java (OkHttp)"}
+                "java_okhttp": {"title": "Java (OkHttp)"},
             },
             "defaultExpanded": False,
-            "languages": None
-        }
+            "languages": None,
+        },
     },
     "SWAGGER_UI_DIST": "SIDECAR",
     "SWAGGER_UI_FAVICON_HREF": "SIDECAR",
@@ -332,8 +329,8 @@ SPECTACULAR_SETTINGS = {
         "apps.appointment.models.Appointment.Status": "AppointmentStatusEnum",
         "apps.payment.models.Payment.Status": "PaymentStatusEnum",
         "apps.payment.models.Payment.Method": "PaymentMethodEnum",
-        "apps.review.models.Review.RATING_CHOICES": "ReviewRatingEnum",
-        "apps.user.models.User.USER_TYPE_CHOICES": "UserTypeEnum",
+        "apps.review.models.Review.Rating": "ReviewRatingEnum",
+        "apps.user.models.User.Role": "UserRoleEnum",
     },
     "SORT_OPERATIONS": True,
     "SCHEMA_COERCE_PATH_PK": True,
@@ -357,9 +354,9 @@ SPECTACULAR_SETTINGS = {
             "variables": {
                 "port": {
                     "default": "8000",
-                    "description": "Porta do servidor de desenvolvimento"
+                    "description": "Porta do servidor de desenvolvimento",
                 }
-            }
+            },
         },
         {
             "url": "https://api.yourdomain.com",
@@ -393,7 +390,6 @@ SPECTACULAR_SETTINGS = {
         },
     ],
 }
-
 
 
 # django-cors-headers settings
