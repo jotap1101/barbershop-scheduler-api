@@ -5,18 +5,6172 @@ info:
   description: A comprehensive REST API for managing barbershop operations, including
     user authentication, appointment scheduling, payment processing, and customer
     reviews.
-paths: {}
-components: {}
+paths:
+  /api/v1/appointments/:
+    get:
+      operationId: v1_appointments_list
+      description: Lista todos os agendamentos com paginação e filtros.
+      summary: Listar agendamentos
+      parameters:
+      - in: query
+        name: barber
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: barbershop
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: customer
+        schema:
+          type: string
+          format: uuid
+      - name: ordering
+        required: false
+        in: query
+        description: Qual campo usar ao ordenar os resultados.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Um número de página dentro do conjunto de resultados paginado.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Um termo de busca.
+        schema:
+          type: string
+      - in: query
+        name: service
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - CANCELLED
+          - COMPLETED
+          - CONFIRMED
+          - PENDING
+        description: |-
+          * `PENDING` - Pendente
+          * `CONFIRMED` - Confirmado
+          * `COMPLETED` - Concluído
+          * `CANCELLED` - Cancelado
+      tags:
+      - appointments
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAppointmentListList'
+          description: ''
+    post:
+      operationId: v1_appointments_create
+      description: Cria um novo agendamento no sistema.
+      summary: Criar agendamento
+      tags:
+      - appointments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppointmentCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AppointmentCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AppointmentCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppointmentCreate'
+          description: ''
+  /api/v1/appointments/{id}/:
+    get:
+      operationId: v1_appointments_retrieve
+      description: Retorna os detalhes de um agendamento específico.
+      summary: Detalhar agendamento
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Agendamento.
+        required: true
+      tags:
+      - appointments
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppointmentDetail'
+          description: ''
+    put:
+      operationId: v1_appointments_update
+      description: Atualiza todos os campos de um agendamento.
+      summary: Atualizar agendamento
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Agendamento.
+        required: true
+      tags:
+      - appointments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppointmentUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AppointmentUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AppointmentUpdateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppointmentUpdate'
+          description: ''
+    patch:
+      operationId: v1_appointments_partial_update
+      description: Atualiza alguns campos de um agendamento.
+      summary: Atualizar agendamento parcialmente
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Agendamento.
+        required: true
+      tags:
+      - appointments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAppointmentUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAppointmentUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAppointmentUpdateRequest'
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppointmentUpdate'
+          description: ''
+    delete:
+      operationId: v1_appointments_destroy
+      description: Cancela um agendamento do sistema.
+      summary: Cancelar agendamento
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Agendamento.
+        required: true
+      tags:
+      - appointments
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/appointments/{id}/cancel/:
+    post:
+      operationId: v1_appointments_cancel_create
+      description: Cancela um agendamento.
+      summary: Cancelar agendamento
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Agendamento.
+        required: true
+      tags:
+      - appointments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppointmentRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AppointmentRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AppointmentRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+          description: ''
+  /api/v1/appointments/{id}/complete/:
+    post:
+      operationId: v1_appointments_complete_create
+      description: Marca um agendamento como concluído.
+      summary: Marcar como concluído
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Agendamento.
+        required: true
+      tags:
+      - appointments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppointmentRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AppointmentRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AppointmentRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+          description: ''
+  /api/v1/appointments/{id}/confirm/:
+    post:
+      operationId: v1_appointments_confirm_create
+      description: Confirma um agendamento pendente.
+      summary: Confirmar agendamento
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Agendamento.
+        required: true
+      tags:
+      - appointments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppointmentRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AppointmentRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AppointmentRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+          description: ''
+  /api/v1/appointments/barber-appointments/:
+    get:
+      operationId: v1_appointments_barber_appointments_retrieve
+      description: Retorna os agendamentos do barbeiro autenticado.
+      summary: Agendamentos do barbeiro
+      tags:
+      - appointments
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+          description: ''
+  /api/v1/appointments/my-appointments/:
+    get:
+      operationId: v1_appointments_my_appointments_retrieve
+      description: Retorna os agendamentos do usuário autenticado (cliente).
+      summary: Meus agendamentos
+      tags:
+      - appointments
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+          description: ''
+  /api/v1/appointments/today/:
+    get:
+      operationId: v1_appointments_today_retrieve
+      description: Retorna todos os agendamentos para hoje.
+      summary: Agendamentos de hoje
+      tags:
+      - appointments
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+          description: ''
+  /api/v1/appointments/upcoming/:
+    get:
+      operationId: v1_appointments_upcoming_retrieve
+      description: Retorna os agendamentos futuros (próximos 7 dias por padrão).
+      summary: Próximos agendamentos
+      tags:
+      - appointments
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+          description: ''
+  /api/v1/barber-schedules/:
+    get:
+      operationId: v1_barber_schedules_list
+      description: Lista todas as agendas dos barbeiros com paginação e filtros.
+      summary: Listar agendas dos barbeiros
+      parameters:
+      - in: query
+        name: barber
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: barbershop
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: is_available
+        schema:
+          type: boolean
+      - name: ordering
+        required: false
+        in: query
+        description: Qual campo usar ao ordenar os resultados.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Um número de página dentro do conjunto de resultados paginado.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Um termo de busca.
+        schema:
+          type: string
+      - in: query
+        name: weekday
+        schema:
+          type: integer
+          title: Dia da Semana
+          enum:
+          - 0
+          - 1
+          - 2
+          - 3
+          - 4
+          - 5
+          - 6
+        description: |-
+          * `0` - Domingo
+          * `1` - Segunda-feira
+          * `2` - Terça-feira
+          * `3` - Quarta-feira
+          * `4` - Quinta-feira
+          * `5` - Sexta-feira
+          * `6` - Sábado
+      tags:
+      - appointments
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBarberScheduleListList'
+          description: ''
+    post:
+      operationId: v1_barber_schedules_create
+      description: Cria uma nova agenda para um barbeiro.
+      summary: Criar agenda de barbeiro
+      tags:
+      - appointments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BarberScheduleCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BarberScheduleCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BarberScheduleCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BarberScheduleCreate'
+          description: ''
+  /api/v1/barber-schedules/{id}/:
+    get:
+      operationId: v1_barber_schedules_retrieve
+      description: Retorna os detalhes de uma agenda específica.
+      summary: Detalhar agenda de barbeiro
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Agenda do Barbeiro.
+        required: true
+      tags:
+      - appointments
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BarberScheduleDetail'
+          description: ''
+    put:
+      operationId: v1_barber_schedules_update
+      description: Atualiza todos os campos de uma agenda.
+      summary: Atualizar agenda de barbeiro
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Agenda do Barbeiro.
+        required: true
+      tags:
+      - appointments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BarberScheduleUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BarberScheduleUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BarberScheduleUpdateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BarberScheduleUpdate'
+          description: ''
+    patch:
+      operationId: v1_barber_schedules_partial_update
+      description: Atualiza alguns campos de uma agenda.
+      summary: Atualizar agenda parcialmente
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Agenda do Barbeiro.
+        required: true
+      tags:
+      - appointments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedBarberScheduleUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedBarberScheduleUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedBarberScheduleUpdateRequest'
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BarberScheduleUpdate'
+          description: ''
+    delete:
+      operationId: v1_barber_schedules_destroy
+      description: Remove uma agenda do sistema.
+      summary: Deletar agenda de barbeiro
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Agenda do Barbeiro.
+        required: true
+      tags:
+      - appointments
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/barber-schedules/{id}/available-slots/:
+    get:
+      operationId: v1_barber_schedules_available_slots_retrieve
+      description: Retorna os horários disponíveis para uma agenda específica em uma
+        data.
+      summary: Horários disponíveis
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Agenda do Barbeiro.
+        required: true
+      tags:
+      - appointments
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BarberSchedule'
+          description: ''
+  /api/v1/barber-schedules/my-schedules/:
+    get:
+      operationId: v1_barber_schedules_my_schedules_retrieve
+      description: Retorna as agendas do barbeiro autenticado.
+      summary: Minhas agendas
+      tags:
+      - appointments
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BarberSchedule'
+          description: ''
+  /api/v1/barbershop-customers/:
+    get:
+      operationId: v1_barbershop_customers_list
+      description: Lista todos os relacionamentos cliente-barbearia com paginação
+        e filtros.
+      summary: Listar clientes de barbearia
+      parameters:
+      - in: query
+        name: barbershop
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: customer
+        schema:
+          type: string
+          format: uuid
+      - name: ordering
+        required: false
+        in: query
+        description: Qual campo usar ao ordenar os resultados.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Um número de página dentro do conjunto de resultados paginado.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Um termo de busca.
+        schema:
+          type: string
+      tags:
+      - barbershops
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBarbershopCustomerListList'
+          description: ''
+    post:
+      operationId: v1_barbershop_customers_create
+      description: Cria um novo relacionamento entre cliente e barbearia.
+      summary: Criar relacionamento cliente-barbearia
+      tags:
+      - barbershops
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BarbershopCustomerRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BarbershopCustomerRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BarbershopCustomerRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BarbershopCustomer'
+          description: ''
+  /api/v1/barbershop-customers/{id}/:
+    get:
+      operationId: v1_barbershop_customers_retrieve
+      description: Retorna os detalhes de um relacionamento cliente-barbearia específico.
+      summary: Detalhar cliente de barbearia
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Cliente da Barbearia.
+        required: true
+      tags:
+      - barbershops
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BarbershopCustomerDetail'
+          description: ''
+    put:
+      operationId: v1_barbershop_customers_update
+      description: Atualiza um relacionamento cliente-barbearia.
+      summary: Atualizar cliente de barbearia
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Cliente da Barbearia.
+        required: true
+      tags:
+      - barbershops
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BarbershopCustomerRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BarbershopCustomerRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BarbershopCustomerRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BarbershopCustomer'
+          description: ''
+    patch:
+      operationId: v1_barbershop_customers_partial_update
+      description: Atualiza alguns campos de um relacionamento cliente-barbearia.
+      summary: Atualizar cliente de barbearia parcialmente
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Cliente da Barbearia.
+        required: true
+      tags:
+      - barbershops
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedBarbershopCustomerRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedBarbershopCustomerRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedBarbershopCustomerRequest'
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BarbershopCustomer'
+          description: ''
+    delete:
+      operationId: v1_barbershop_customers_destroy
+      description: Remove um relacionamento cliente-barbearia do sistema.
+      summary: Deletar cliente de barbearia
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Cliente da Barbearia.
+        required: true
+      tags:
+      - barbershops
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/barbershop-customers/inactive/:
+    get:
+      operationId: v1_barbershop_customers_inactive_retrieve
+      description: Lista clientes inativos que não visitaram há muito tempo.
+      summary: Clientes inativos
+      tags:
+      - barbershops
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BarbershopCustomer'
+          description: ''
+  /api/v1/barbershop-customers/vip/:
+    get:
+      operationId: v1_barbershop_customers_vip_retrieve
+      description: Lista clientes VIP baseado no valor gasto.
+      summary: Clientes VIP
+      tags:
+      - barbershops
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BarbershopCustomer'
+          description: ''
+  /api/v1/barbershops/:
+    get:
+      operationId: v1_barbershops_list
+      description: Lista todas as barbearias com paginação e filtros.
+      summary: Listar barbearias
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Qual campo usar ao ordenar os resultados.
+        schema:
+          type: string
+      - in: query
+        name: owner
+        schema:
+          type: string
+          format: uuid
+      - name: page
+        required: false
+        in: query
+        description: Um número de página dentro do conjunto de resultados paginado.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Um termo de busca.
+        schema:
+          type: string
+      tags:
+      - barbershops
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBarbershopListList'
+          description: ''
+    post:
+      operationId: v1_barbershops_create
+      description: Cria uma nova barbearia no sistema.
+      summary: Criar barbearia
+      tags:
+      - barbershops
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BarbershopCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BarbershopCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BarbershopCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BarbershopCreate'
+          description: ''
+  /api/v1/barbershops/{id}/:
+    get:
+      operationId: v1_barbershops_retrieve
+      description: Retorna os detalhes de uma barbearia específica.
+      summary: Detalhar barbearia
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Barbearia.
+        required: true
+      tags:
+      - barbershops
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BarbershopDetail'
+          description: ''
+    put:
+      operationId: v1_barbershops_update
+      description: Atualiza todos os campos de uma barbearia.
+      summary: Atualizar barbearia
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Barbearia.
+        required: true
+      tags:
+      - barbershops
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BarbershopUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BarbershopUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BarbershopUpdateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BarbershopUpdate'
+          description: ''
+    patch:
+      operationId: v1_barbershops_partial_update
+      description: Atualiza alguns campos de uma barbearia.
+      summary: Atualizar barbearia parcialmente
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Barbearia.
+        required: true
+      tags:
+      - barbershops
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedBarbershopUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedBarbershopUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedBarbershopUpdateRequest'
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BarbershopUpdate'
+          description: ''
+    delete:
+      operationId: v1_barbershops_destroy
+      description: Remove uma barbearia do sistema.
+      summary: Deletar barbearia
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Barbearia.
+        required: true
+      tags:
+      - barbershops
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/barbershops/{id}/customers/:
+    get:
+      operationId: v1_barbershops_customers_retrieve
+      description: Retorna todos os clientes de uma barbearia específica.
+      summary: Clientes da barbearia
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Barbearia.
+        required: true
+      tags:
+      - barbershops
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Barbershop'
+          description: ''
+  /api/v1/barbershops/{id}/revenue-report/:
+    get:
+      operationId: v1_barbershops_revenue_report_retrieve
+      description: Retorna relatório detalhado de receita da barbearia por período.
+      summary: Relatório de receita
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Barbearia.
+        required: true
+      tags:
+      - barbershops
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Barbershop'
+          description: ''
+  /api/v1/barbershops/{id}/services/:
+    get:
+      operationId: v1_barbershops_services_retrieve
+      description: Retorna todos os serviços de uma barbearia específica.
+      summary: Serviços da barbearia
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Barbearia.
+        required: true
+      tags:
+      - barbershops
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Barbershop'
+          description: ''
+  /api/v1/barbershops/{id}/stats/:
+    get:
+      operationId: v1_barbershops_stats_retrieve
+      description: Retorna estatísticas detalhadas de uma barbearia específica.
+      summary: Estatísticas da barbearia
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Barbearia.
+        required: true
+      tags:
+      - barbershops
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Barbershop'
+          description: ''
+  /api/v1/barbershops/my-barbershops/:
+    get:
+      operationId: v1_barbershops_my_barbershops_retrieve
+      description: Retorna as barbearias do usuário autenticado.
+      summary: Minhas barbearias
+      tags:
+      - barbershops
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Barbershop'
+          description: ''
+  /api/v1/payments/:
+    get:
+      operationId: v1_payments_list
+      description: Lista todos os pagamentos com paginação e filtros.
+      summary: Listar pagamentos
+      parameters:
+      - in: query
+        name: appointment__barbershop
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: appointment__customer
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: appointment__service
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: method
+        schema:
+          type: string
+          title: Método de Pagamento
+          enum:
+          - CASH
+          - CREDIT_CARD
+          - DEBIT_CARD
+          - PIX
+        description: |-
+          * `PIX` - Pix
+          * `CREDIT_CARD` - Cartão de Crédito
+          * `DEBIT_CARD` - Cartão de Débito
+          * `CASH` - Dinheiro
+      - name: ordering
+        required: false
+        in: query
+        description: Qual campo usar ao ordenar os resultados.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Um número de página dentro do conjunto de resultados paginado.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Um termo de busca.
+        schema:
+          type: string
+      - in: query
+        name: status
+        schema:
+          type: string
+          title: Status do Pagamento
+          enum:
+          - PAID
+          - PENDING
+          - REFUNDED
+        description: |-
+          * `PENDING` - Pendente
+          * `PAID` - Pago
+          * `REFUNDED` - Reembolsado
+      tags:
+      - payments
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPaymentListList'
+          description: ''
+    post:
+      operationId: v1_payments_create
+      description: Cria um novo pagamento para um agendamento.
+      summary: Criar pagamento
+      tags:
+      - payments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PaymentCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PaymentCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentCreate'
+          description: ''
+  /api/v1/payments/{id}/:
+    get:
+      operationId: v1_payments_retrieve
+      description: Retorna os detalhes de um pagamento específico.
+      summary: Detalhar pagamento
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Pagamento.
+        required: true
+      tags:
+      - payments
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentDetail'
+          description: ''
+    put:
+      operationId: v1_payments_update
+      description: Atualiza todos os campos de um pagamento.
+      summary: Atualizar pagamento
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Pagamento.
+        required: true
+      tags:
+      - payments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PaymentUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PaymentUpdateRequest'
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentUpdate'
+          description: ''
+    patch:
+      operationId: v1_payments_partial_update
+      description: Atualiza alguns campos de um pagamento.
+      summary: Atualizar pagamento parcialmente
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Pagamento.
+        required: true
+      tags:
+      - payments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPaymentUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPaymentUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPaymentUpdateRequest'
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentUpdate'
+          description: ''
+    delete:
+      operationId: v1_payments_destroy
+      description: Remove um pagamento do sistema.
+      summary: Deletar pagamento
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Pagamento.
+        required: true
+      tags:
+      - payments
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/payments/{id}/confirm/:
+    patch:
+      operationId: v1_payments_confirm_partial_update
+      description: Marca um pagamento como pago.
+      summary: Confirmar pagamento
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Pagamento.
+        required: true
+      tags:
+      - payments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPaymentConfirmRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPaymentConfirmRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPaymentConfirmRequest'
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentConfirm'
+          description: ''
+  /api/v1/payments/{id}/refund/:
+    patch:
+      operationId: v1_payments_refund_partial_update
+      description: Marca um pagamento como reembolsado.
+      summary: Reembolsar pagamento
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Pagamento.
+        required: true
+      tags:
+      - payments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPaymentRefundRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPaymentRefundRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPaymentRefundRequest'
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentRefund'
+          description: ''
+  /api/v1/payments/my_payments/:
+    get:
+      operationId: v1_payments_my_payments_retrieve
+      description: Lista os pagamentos do usuário autenticado.
+      summary: Meus pagamentos
+      tags:
+      - payments
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+          description: ''
+  /api/v1/payments/pending/:
+    get:
+      operationId: v1_payments_pending_retrieve
+      description: Lista todos os pagamentos com status pendente.
+      summary: Pagamentos pendentes
+      tags:
+      - payments
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+          description: ''
+  /api/v1/payments/revenue_by_period/:
+    get:
+      operationId: v1_payments_revenue_by_period_retrieve
+      description: Retorna a receita total em um período específico.
+      summary: Receita por período
+      tags:
+      - payments
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+          description: ''
+  /api/v1/payments/statistics/:
+    get:
+      operationId: v1_payments_statistics_retrieve
+      description: Retorna estatísticas gerais dos pagamentos.
+      summary: Estatísticas de pagamentos
+      tags:
+      - payments
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+          description: ''
+  /api/v1/payments/today/:
+    get:
+      operationId: v1_payments_today_retrieve
+      description: Lista os pagamentos realizados hoje.
+      summary: Pagamentos do dia
+      tags:
+      - payments
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+          description: ''
+  /api/v1/reviews/:
+    get:
+      operationId: v1_reviews_list
+      description: Retorna uma lista paginada de avaliações com filtros e busca.
+      summary: Listar avaliações
+      parameters:
+      - in: query
+        name: barber
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: barbershop
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: barbershop_customer
+        schema:
+          type: string
+          format: uuid
+      - name: ordering
+        required: false
+        in: query
+        description: Qual campo usar ao ordenar os resultados.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Um número de página dentro do conjunto de resultados paginado.
+        schema:
+          type: integer
+      - in: query
+        name: rating
+        schema:
+          type: integer
+          title: Avaliação
+          enum:
+          - 1
+          - 2
+          - 3
+          - 4
+          - 5
+        description: |-
+          * `1` - 1 Estrela
+          * `2` - 2 Estrelas
+          * `3` - 3 Estrelas
+          * `4` - 4 Estrelas
+          * `5` - 5 Estrelas
+      - name: search
+        required: false
+        in: query
+        description: Um termo de busca.
+        schema:
+          type: string
+      - in: query
+        name: service
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - reviews
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedReviewListList'
+          description: ''
+    post:
+      operationId: v1_reviews_create
+      description: Cria uma nova avaliação para um serviço/barbeiro após agendamento.
+      summary: Criar avaliação
+      tags:
+      - reviews
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ReviewCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ReviewCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewCreate'
+          description: ''
+  /api/v1/reviews/{id}/:
+    get:
+      operationId: v1_reviews_retrieve
+      description: Retorna os detalhes completos de uma avaliação específica.
+      summary: Obter avaliação
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Avaliação.
+        required: true
+      tags:
+      - reviews
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewDetail'
+          description: ''
+    put:
+      operationId: v1_reviews_update
+      description: Atualiza completamente uma avaliação existente.
+      summary: Atualizar avaliação
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Avaliação.
+        required: true
+      tags:
+      - reviews
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ReviewUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ReviewUpdateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewUpdate'
+          description: ''
+    patch:
+      operationId: v1_reviews_partial_update
+      description: Atualiza parcialmente uma avaliação existente.
+      summary: Atualizar avaliação parcialmente
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Avaliação.
+        required: true
+      tags:
+      - reviews
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedReviewUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedReviewUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedReviewUpdateRequest'
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewUpdate'
+          description: ''
+    delete:
+      operationId: v1_reviews_destroy
+      description: Remove uma avaliação do sistema.
+      summary: Deletar avaliação
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Avaliação.
+        required: true
+      tags:
+      - reviews
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/reviews/by_period/:
+    get:
+      operationId: v1_reviews_by_period_retrieve
+      description: Retorna avaliações filtradas por período específico.
+      summary: Avaliações por período
+      tags:
+      - reviews
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewDetail'
+          description: ''
+  /api/v1/reviews/by_rating/:
+    get:
+      operationId: v1_reviews_by_rating_retrieve
+      description: Retorna avaliações filtradas por rating específico.
+      summary: Avaliações por rating
+      tags:
+      - reviews
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewDetail'
+          description: ''
+  /api/v1/reviews/my_reviews/:
+    get:
+      operationId: v1_reviews_my_reviews_retrieve
+      description: Retorna as avaliações do usuário logado (como cliente ou barbeiro).
+      summary: Minhas avaliações
+      tags:
+      - reviews
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewDetail'
+          description: ''
+  /api/v1/reviews/statistics/:
+    get:
+      operationId: v1_reviews_statistics_retrieve
+      description: Retorna estatísticas gerais das avaliações (filtradas por contexto
+        do usuário).
+      summary: Estatísticas de avaliações
+      tags:
+      - reviews
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewDetail'
+          description: ''
+  /api/v1/reviews/top_rated/:
+    get:
+      operationId: v1_reviews_top_rated_retrieve
+      description: Retorna rankings dos melhores barbeiros, serviços e barbearias.
+      summary: Top avaliações
+      tags:
+      - reviews
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewDetail'
+          description: ''
+  /api/v1/reviews/trends/:
+    get:
+      operationId: v1_reviews_trends_retrieve
+      description: Retorna tendências de avaliações comparando períodos.
+      summary: Tendências de avaliações
+      tags:
+      - reviews
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewDetail'
+          description: ''
+  /api/v1/services/:
+    get:
+      operationId: v1_services_list
+      description: Lista todos os serviços com paginação e filtros.
+      summary: Listar serviços
+      parameters:
+      - in: query
+        name: available
+        schema:
+          type: boolean
+      - in: query
+        name: barbershop
+        schema:
+          type: string
+          format: uuid
+      - name: ordering
+        required: false
+        in: query
+        description: Qual campo usar ao ordenar os resultados.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Um número de página dentro do conjunto de resultados paginado.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Um termo de busca.
+        schema:
+          type: string
+      tags:
+      - barbershops
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedServiceListList'
+          description: ''
+    post:
+      operationId: v1_services_create
+      description: Cria um novo serviço para uma barbearia.
+      summary: Criar serviço
+      tags:
+      - barbershops
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ServiceCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ServiceCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceCreate'
+          description: ''
+  /api/v1/services/{id}/:
+    get:
+      operationId: v1_services_retrieve
+      description: Retorna os detalhes de um serviço específico.
+      summary: Detalhar serviço
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Serviço.
+        required: true
+      tags:
+      - barbershops
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceDetail'
+          description: ''
+    put:
+      operationId: v1_services_update
+      description: Atualiza todos os campos de um serviço.
+      summary: Atualizar serviço
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Serviço.
+        required: true
+      tags:
+      - barbershops
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ServiceUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ServiceUpdateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceUpdate'
+          description: ''
+    patch:
+      operationId: v1_services_partial_update
+      description: Atualiza alguns campos de um serviço.
+      summary: Atualizar serviço parcialmente
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Serviço.
+        required: true
+      tags:
+      - barbershops
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedServiceUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedServiceUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedServiceUpdateRequest'
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceUpdate'
+          description: ''
+    delete:
+      operationId: v1_services_destroy
+      description: Remove um serviço do sistema.
+      summary: Deletar serviço
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Serviço.
+        required: true
+      tags:
+      - barbershops
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/services/{id}/toggle-availability/:
+    post:
+      operationId: v1_services_toggle_availability_create
+      description: Alterna a disponibilidade de um serviço.
+      summary: Alternar disponibilidade
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Serviço.
+        required: true
+      tags:
+      - barbershops
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ServiceRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ServiceRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Service'
+          description: ''
+  /api/v1/services/popular/:
+    get:
+      operationId: v1_services_popular_retrieve
+      description: Lista os serviços mais populares baseado em agendamentos.
+      summary: Serviços populares
+      tags:
+      - barbershops
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Service'
+          description: ''
+  /api/v1/token/:
+    post:
+      operationId: v1_token_create
+      description: Obtém um par de tokens JWT (access e refresh) para autenticação.
+      summary: Obter token JWT
+      tags:
+      - authentication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomTokenObtainPairRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CustomTokenObtainPairRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CustomTokenObtainPairRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/token/blacklist/:
+    post:
+      operationId: v1_token_blacklist_create
+      description: Invalidar um token de atualização, removendo-o da lista de tokens
+        válidos.
+      summary: Invalidar token JWT
+      tags:
+      - authentication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenBlacklistRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenBlacklistRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenBlacklistRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/token/refresh/:
+    post:
+      operationId: v1_token_refresh_create
+      description: Atualiza o token de acesso usando um token de atualização válido.
+      summary: Atualizar token JWT
+      tags:
+      - authentication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefresh'
+          description: ''
+  /api/v1/token/verify/:
+    post:
+      operationId: v1_token_verify_create
+      description: Verifica a validade de um token JWT.
+      summary: Verificar token JWT
+      tags:
+      - authentication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenVerifyRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenVerifyRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenVerifyRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/users/:
+    get:
+      operationId: v1_users_list
+      description: Lista todos os usuários com paginação e filtros.
+      summary: Listar usuários
+      parameters:
+      - in: query
+        name: is_active
+        schema:
+          type: boolean
+      - in: query
+        name: is_barbershop_owner
+        schema:
+          type: boolean
+      - name: ordering
+        required: false
+        in: query
+        description: Qual campo usar ao ordenar os resultados.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Um número de página dentro do conjunto de resultados paginado.
+        schema:
+          type: integer
+      - in: query
+        name: role
+        schema:
+          type: string
+          title: Função
+          enum:
+          - ADMIN
+          - BARBER
+          - CLIENT
+        description: |-
+          * `CLIENT` - Cliente
+          * `BARBER` - Barbeiro
+          * `ADMIN` - Administrador
+      - name: search
+        required: false
+        in: query
+        description: Um termo de busca.
+        schema:
+          type: string
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedUserListList'
+          description: ''
+    post:
+      operationId: v1_users_create
+      description: Cria um novo usuário no sistema.
+      summary: Criar usuário
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserCreate'
+          description: ''
+  /api/v1/users/{id}/:
+    get:
+      operationId: v1_users_retrieve
+      description: Retorna os detalhes de um usuário específico.
+      summary: Detalhar usuário
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Usuário.
+        required: true
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDetail'
+          description: ''
+    put:
+      operationId: v1_users_update
+      description: Atualiza todos os campos de um usuário.
+      summary: Atualizar usuário
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Usuário.
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserUpdateRequest'
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserUpdate'
+          description: ''
+    patch:
+      operationId: v1_users_partial_update
+      description: Atualiza alguns campos de um usuário.
+      summary: Atualizar usuário parcialmente
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Usuário.
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUserUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUserUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUserUpdateRequest'
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserUpdate'
+          description: ''
+    delete:
+      operationId: v1_users_destroy
+      description: Remove um usuário do sistema.
+      summary: Deletar usuário
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Usuário.
+        required: true
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/users/{id}/activate/:
+    post:
+      operationId: v1_users_activate_create
+      description: Ativa um usuário específico (apenas administradores).
+      summary: Ativar usuário
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Usuário.
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/v1/users/{id}/deactivate/:
+    post:
+      operationId: v1_users_deactivate_create
+      description: Desativa um usuário específico (apenas administradores).
+      summary: Desativar usuário
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Um string UUID que identifica este Usuário.
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/v1/users/admins/:
+    get:
+      operationId: v1_users_admins_retrieve
+      description: Lista todos os usuários com função de administrador.
+      summary: Listar administradores
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/v1/users/barbers/:
+    get:
+      operationId: v1_users_barbers_retrieve
+      description: Lista todos os usuários com função de barbeiro.
+      summary: Listar barbeiros
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/v1/users/change-password/:
+    post:
+      operationId: v1_users_change_password_create
+      description: Permite ao usuário alterar sua senha.
+      summary: Alterar senha
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChangePassword'
+          description: ''
+  /api/v1/users/clients/:
+    get:
+      operationId: v1_users_clients_retrieve
+      description: Lista todos os usuários com função de cliente.
+      summary: Listar clientes
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/v1/users/me/:
+    get:
+      operationId: v1_users_me_retrieve
+      description: Retorna os dados do usuário autenticado.
+      summary: Meu perfil
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    put:
+      operationId: v1_users_me_update
+      description: Retorna os dados do usuário autenticado.
+      summary: Meu perfil
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    patch:
+      operationId: v1_users_me_partial_update
+      description: Retorna os dados do usuário autenticado.
+      summary: Meu perfil
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUserRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUserRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUserRequest'
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/v1/users/profile-completion/:
+    get:
+      operationId: v1_users_profile_completion_retrieve
+      description: Retorna a porcentagem de completude do perfil do usuário atual.
+      summary: Completude do perfil
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/v1/users/stats/:
+    get:
+      operationId: v1_users_stats_retrieve
+      description: Retorna estatísticas gerais sobre usuários (apenas administradores).
+      summary: Estatísticas de usuários
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/v1/users/user-type/:
+    get:
+      operationId: v1_users_user_type_retrieve
+      description: Verifica o tipo do usuário atual (cliente, barbeiro ou admin).
+      summary: Verificar tipo de usuário
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+components:
+  schemas:
+    Appointment:
+      type: object
+      description: Serializer for Appointment model with all fields
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        customer:
+          type: string
+          format: uuid
+          title: Cliente
+        customer_name:
+          type: string
+          readOnly: true
+        barber:
+          type: string
+          format: uuid
+          title: Barbeiro
+        barber_name:
+          type: string
+          readOnly: true
+        service:
+          type: string
+          format: uuid
+          title: Serviço
+        service_name:
+          type: string
+          readOnly: true
+        barbershop:
+          type: string
+          format: uuid
+          title: Barbearia
+        barbershop_name:
+          type: string
+          readOnly: true
+        start_datetime:
+          type: string
+          format: date-time
+          title: Data e Hora de Início
+        end_datetime:
+          type: string
+          format: date-time
+          title: Data e Hora de Término
+        status:
+          $ref: '#/components/schemas/Status2d1Enum'
+        status_display:
+          type: string
+          readOnly: true
+        final_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          nullable: true
+          title: Preço Final
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        duration_minutes:
+          type: integer
+          readOnly: true
+        duration_hours:
+          type: number
+          format: double
+          readOnly: true
+        is_today:
+          type: boolean
+          readOnly: true
+        is_past:
+          type: boolean
+          readOnly: true
+        is_upcoming:
+          type: boolean
+          readOnly: true
+        is_in_progress:
+          type: boolean
+          readOnly: true
+        can_be_cancelled:
+          type: boolean
+          readOnly: true
+        can_be_confirmed:
+          type: boolean
+          readOnly: true
+        can_be_completed:
+          type: boolean
+          readOnly: true
+        formatted_datetime:
+          type: string
+          readOnly: true
+        formatted_date:
+          type: string
+          readOnly: true
+        formatted_time:
+          type: string
+          readOnly: true
+      required:
+      - barber
+      - barbershop
+      - customer
+      - end_datetime
+      - service
+      - start_datetime
+    AppointmentCreate:
+      type: object
+      description: Serializer for creating appointments
+      properties:
+        customer:
+          type: string
+          format: uuid
+          title: Cliente
+        barber:
+          type: string
+          format: uuid
+          title: Barbeiro
+        service:
+          type: string
+          format: uuid
+          title: Serviço
+        barbershop:
+          type: string
+          format: uuid
+          title: Barbearia
+        start_datetime:
+          type: string
+          format: date-time
+          title: Data e Hora de Início
+        end_datetime:
+          type: string
+          format: date-time
+          title: Data e Hora de Término
+        final_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          nullable: true
+          title: Preço Final
+      required:
+      - barber
+      - barbershop
+      - customer
+      - end_datetime
+      - service
+      - start_datetime
+    AppointmentCreateRequest:
+      type: object
+      description: Serializer for creating appointments
+      properties:
+        customer:
+          type: string
+          format: uuid
+          title: Cliente
+        barber:
+          type: string
+          format: uuid
+          title: Barbeiro
+        service:
+          type: string
+          format: uuid
+          title: Serviço
+        barbershop:
+          type: string
+          format: uuid
+          title: Barbearia
+        start_datetime:
+          type: string
+          format: date-time
+          title: Data e Hora de Início
+        end_datetime:
+          type: string
+          format: date-time
+          title: Data e Hora de Término
+        final_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          nullable: true
+          title: Preço Final
+      required:
+      - barber
+      - barbershop
+      - customer
+      - end_datetime
+      - service
+      - start_datetime
+    AppointmentDetail:
+      type: object
+      description: Serializer for detailed appointment view
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        customer:
+          allOf:
+          - $ref: '#/components/schemas/BarbershopCustomerList'
+          readOnly: true
+        barber:
+          allOf:
+          - $ref: '#/components/schemas/UserList'
+          readOnly: true
+        service:
+          allOf:
+          - $ref: '#/components/schemas/ServiceList'
+          readOnly: true
+        barbershop:
+          allOf:
+          - $ref: '#/components/schemas/BarbershopList'
+          readOnly: true
+        start_datetime:
+          type: string
+          format: date-time
+          title: Data e Hora de Início
+        end_datetime:
+          type: string
+          format: date-time
+          title: Data e Hora de Término
+        status:
+          $ref: '#/components/schemas/Status2d1Enum'
+        status_display:
+          type: string
+          readOnly: true
+        final_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          nullable: true
+          title: Preço Final
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        duration_minutes:
+          type: integer
+          readOnly: true
+        duration_hours:
+          type: number
+          format: double
+          readOnly: true
+        is_today:
+          type: boolean
+          readOnly: true
+        is_past:
+          type: boolean
+          readOnly: true
+        is_upcoming:
+          type: boolean
+          readOnly: true
+        is_in_progress:
+          type: boolean
+          readOnly: true
+        can_be_cancelled:
+          type: boolean
+          readOnly: true
+        can_be_confirmed:
+          type: boolean
+          readOnly: true
+        can_be_completed:
+          type: boolean
+          readOnly: true
+        formatted_datetime:
+          type: string
+          readOnly: true
+        formatted_date:
+          type: string
+          readOnly: true
+        formatted_time:
+          type: string
+          readOnly: true
+      required:
+      - end_datetime
+      - start_datetime
+    AppointmentList:
+      type: object
+      description: Serializer for listing appointments with essential fields
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        customer:
+          type: string
+          format: uuid
+          title: Cliente
+        customer_name:
+          type: string
+          readOnly: true
+        barber:
+          type: string
+          format: uuid
+          title: Barbeiro
+        barber_name:
+          type: string
+          readOnly: true
+        service:
+          type: string
+          format: uuid
+          title: Serviço
+        service_name:
+          type: string
+          readOnly: true
+        barbershop:
+          type: string
+          format: uuid
+          title: Barbearia
+        barbershop_name:
+          type: string
+          readOnly: true
+        start_datetime:
+          type: string
+          format: date-time
+          title: Data e Hora de Início
+        end_datetime:
+          type: string
+          format: date-time
+          title: Data e Hora de Término
+        status:
+          $ref: '#/components/schemas/Status2d1Enum'
+        status_display:
+          type: string
+          readOnly: true
+        final_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          nullable: true
+          title: Preço Final
+        formatted_datetime:
+          type: string
+          readOnly: true
+        is_today:
+          type: boolean
+          readOnly: true
+        is_upcoming:
+          type: boolean
+          readOnly: true
+      required:
+      - barber
+      - barbershop
+      - customer
+      - end_datetime
+      - service
+      - start_datetime
+    AppointmentRequest:
+      type: object
+      description: Serializer for Appointment model with all fields
+      properties:
+        customer:
+          type: string
+          format: uuid
+          title: Cliente
+        barber:
+          type: string
+          format: uuid
+          title: Barbeiro
+        service:
+          type: string
+          format: uuid
+          title: Serviço
+        barbershop:
+          type: string
+          format: uuid
+          title: Barbearia
+        start_datetime:
+          type: string
+          format: date-time
+          title: Data e Hora de Início
+        end_datetime:
+          type: string
+          format: date-time
+          title: Data e Hora de Término
+        status:
+          $ref: '#/components/schemas/Status2d1Enum'
+        final_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          nullable: true
+          title: Preço Final
+      required:
+      - barber
+      - barbershop
+      - customer
+      - end_datetime
+      - service
+      - start_datetime
+    AppointmentUpdate:
+      type: object
+      description: Serializer for updating appointments
+      properties:
+        start_datetime:
+          type: string
+          format: date-time
+          title: Data e Hora de Início
+        end_datetime:
+          type: string
+          format: date-time
+          title: Data e Hora de Término
+        status:
+          $ref: '#/components/schemas/Status2d1Enum'
+        final_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          nullable: true
+          title: Preço Final
+      required:
+      - end_datetime
+      - start_datetime
+    AppointmentUpdateRequest:
+      type: object
+      description: Serializer for updating appointments
+      properties:
+        start_datetime:
+          type: string
+          format: date-time
+          title: Data e Hora de Início
+        end_datetime:
+          type: string
+          format: date-time
+          title: Data e Hora de Término
+        status:
+          $ref: '#/components/schemas/Status2d1Enum'
+        final_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          nullable: true
+          title: Preço Final
+      required:
+      - end_datetime
+      - start_datetime
+    BarberSchedule:
+      type: object
+      description: Serializer for BarberSchedule model with all fields
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        barber:
+          type: string
+          format: uuid
+          title: Barbeiro
+        barber_name:
+          type: string
+          readOnly: true
+        barbershop:
+          type: string
+          format: uuid
+          title: Barbearia
+        barbershop_name:
+          type: string
+          readOnly: true
+        weekday:
+          allOf:
+          - $ref: '#/components/schemas/WeekdayEnum'
+          title: Dia da Semana
+          minimum: -9223372036854775808
+          maximum: 9223372036854775807
+        weekday_display:
+          type: string
+          readOnly: true
+        start_time:
+          type: string
+          format: time
+          title: Hora de Início
+        end_time:
+          type: string
+          format: time
+          title: Hora de Término
+        is_available:
+          type: boolean
+          title: Disponível
+        work_duration_hours:
+          type: number
+          format: double
+          readOnly: true
+        work_duration_minutes:
+          type: integer
+          readOnly: true
+        is_working_now:
+          type: boolean
+          readOnly: true
+        appointments_count_today:
+          type: integer
+          readOnly: true
+      required:
+      - barber
+      - barbershop
+      - end_time
+      - start_time
+      - weekday
+    BarberScheduleCreate:
+      type: object
+      description: Serializer for creating barber schedules
+      properties:
+        barber:
+          type: string
+          format: uuid
+          title: Barbeiro
+        barbershop:
+          type: string
+          format: uuid
+          title: Barbearia
+        weekday:
+          allOf:
+          - $ref: '#/components/schemas/WeekdayEnum'
+          title: Dia da Semana
+          minimum: -9223372036854775808
+          maximum: 9223372036854775807
+        start_time:
+          type: string
+          format: time
+          title: Hora de Início
+        end_time:
+          type: string
+          format: time
+          title: Hora de Término
+        is_available:
+          type: boolean
+          title: Disponível
+      required:
+      - barber
+      - barbershop
+      - end_time
+      - start_time
+      - weekday
+    BarberScheduleCreateRequest:
+      type: object
+      description: Serializer for creating barber schedules
+      properties:
+        barber:
+          type: string
+          format: uuid
+          title: Barbeiro
+        barbershop:
+          type: string
+          format: uuid
+          title: Barbearia
+        weekday:
+          allOf:
+          - $ref: '#/components/schemas/WeekdayEnum'
+          title: Dia da Semana
+          minimum: -9223372036854775808
+          maximum: 9223372036854775807
+        start_time:
+          type: string
+          format: time
+          title: Hora de Início
+        end_time:
+          type: string
+          format: time
+          title: Hora de Término
+        is_available:
+          type: boolean
+          title: Disponível
+      required:
+      - barber
+      - barbershop
+      - end_time
+      - start_time
+      - weekday
+    BarberScheduleDetail:
+      type: object
+      description: Serializer for detailed barber schedule view
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        barber:
+          allOf:
+          - $ref: '#/components/schemas/UserList'
+          readOnly: true
+        barbershop:
+          allOf:
+          - $ref: '#/components/schemas/BarbershopList'
+          readOnly: true
+        weekday:
+          allOf:
+          - $ref: '#/components/schemas/WeekdayEnum'
+          title: Dia da Semana
+          minimum: -9223372036854775808
+          maximum: 9223372036854775807
+        weekday_display:
+          type: string
+          readOnly: true
+        start_time:
+          type: string
+          format: time
+          title: Hora de Início
+        end_time:
+          type: string
+          format: time
+          title: Hora de Término
+        is_available:
+          type: boolean
+          title: Disponível
+        work_duration_hours:
+          type: number
+          format: double
+          readOnly: true
+        work_duration_minutes:
+          type: integer
+          readOnly: true
+        is_working_now:
+          type: boolean
+          readOnly: true
+        appointments_count_today:
+          type: integer
+          readOnly: true
+      required:
+      - end_time
+      - start_time
+      - weekday
+    BarberScheduleList:
+      type: object
+      description: Serializer for listing barber schedules with essential fields
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        barber:
+          type: string
+          format: uuid
+          title: Barbeiro
+        barber_name:
+          type: string
+          readOnly: true
+        barbershop:
+          type: string
+          format: uuid
+          title: Barbearia
+        barbershop_name:
+          type: string
+          readOnly: true
+        weekday:
+          allOf:
+          - $ref: '#/components/schemas/WeekdayEnum'
+          title: Dia da Semana
+          minimum: -9223372036854775808
+          maximum: 9223372036854775807
+        weekday_display:
+          type: string
+          readOnly: true
+        start_time:
+          type: string
+          format: time
+          title: Hora de Início
+        end_time:
+          type: string
+          format: time
+          title: Hora de Término
+        is_available:
+          type: boolean
+          title: Disponível
+        work_duration_minutes:
+          type: integer
+          readOnly: true
+      required:
+      - barber
+      - barbershop
+      - end_time
+      - start_time
+      - weekday
+    BarberScheduleUpdate:
+      type: object
+      description: Serializer for updating barber schedules
+      properties:
+        weekday:
+          allOf:
+          - $ref: '#/components/schemas/WeekdayEnum'
+          title: Dia da Semana
+          minimum: -9223372036854775808
+          maximum: 9223372036854775807
+        start_time:
+          type: string
+          format: time
+          title: Hora de Início
+        end_time:
+          type: string
+          format: time
+          title: Hora de Término
+        is_available:
+          type: boolean
+          title: Disponível
+      required:
+      - end_time
+      - start_time
+      - weekday
+    BarberScheduleUpdateRequest:
+      type: object
+      description: Serializer for updating barber schedules
+      properties:
+        weekday:
+          allOf:
+          - $ref: '#/components/schemas/WeekdayEnum'
+          title: Dia da Semana
+          minimum: -9223372036854775808
+          maximum: 9223372036854775807
+        start_time:
+          type: string
+          format: time
+          title: Hora de Início
+        end_time:
+          type: string
+          format: time
+          title: Hora de Término
+        is_available:
+          type: boolean
+          title: Disponível
+      required:
+      - end_time
+      - start_time
+      - weekday
+    Barbershop:
+      type: object
+      description: Serializer for Barbershop model with all fields
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          title: Nome
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+          title: Descrição
+        cnpj:
+          type: string
+          nullable: true
+          maxLength: 20
+        formatted_cnpj:
+          type: string
+          readOnly: true
+        address:
+          type: string
+          title: Endereço
+          maxLength: 255
+        email:
+          type: string
+          format: email
+          nullable: true
+          maxLength: 254
+        phone:
+          type: string
+          nullable: true
+          title: Telefone
+          maxLength: 20
+        formatted_phone:
+          type: string
+          readOnly: true
+        website:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        logo:
+          type: string
+          format: uri
+          nullable: true
+        owner:
+          type: string
+          format: uuid
+          title: Proprietário
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Criado em
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Atualizado em
+        total_services:
+          type: integer
+          readOnly: true
+        available_services_count:
+          type: integer
+          readOnly: true
+        average_service_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          readOnly: true
+        total_customers:
+          type: integer
+          readOnly: true
+        total_appointments:
+          type: integer
+          readOnly: true
+        total_revenue:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,13}(?:\.\d{0,2})?$
+          readOnly: true
+        has_logo:
+          type: boolean
+          readOnly: true
+        has_contact_info:
+          type: boolean
+          readOnly: true
+      required:
+      - address
+      - name
+      - owner
+    BarbershopCreate:
+      type: object
+      description: Serializer for creating barbershops
+      properties:
+        name:
+          type: string
+          title: Nome
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+          title: Descrição
+        cnpj:
+          type: string
+          nullable: true
+          maxLength: 20
+        address:
+          type: string
+          title: Endereço
+          maxLength: 255
+        email:
+          type: string
+          format: email
+          nullable: true
+          maxLength: 254
+        phone:
+          type: string
+          nullable: true
+          title: Telefone
+          maxLength: 20
+        website:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        logo:
+          type: string
+          format: uri
+          nullable: true
+      required:
+      - address
+      - name
+    BarbershopCreateRequest:
+      type: object
+      description: Serializer for creating barbershops
+      properties:
+        name:
+          type: string
+          minLength: 1
+          title: Nome
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+          title: Descrição
+        cnpj:
+          type: string
+          nullable: true
+          maxLength: 20
+        address:
+          type: string
+          minLength: 1
+          title: Endereço
+          maxLength: 255
+        email:
+          type: string
+          format: email
+          nullable: true
+          maxLength: 254
+        phone:
+          type: string
+          nullable: true
+          title: Telefone
+          maxLength: 20
+        website:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        logo:
+          type: string
+          format: binary
+          nullable: true
+      required:
+      - address
+      - name
+    BarbershopCustomer:
+      type: object
+      description: Serializer for BarbershopCustomer model with all fields
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        customer:
+          type: string
+          format: uuid
+          nullable: true
+          title: Cliente
+        customer_name:
+          type: string
+          readOnly: true
+        customer_username:
+          type: string
+          readOnly: true
+        customer_email:
+          type: string
+          readOnly: true
+        barbershop:
+          type: string
+          format: uuid
+          title: Barbearia
+        barbershop_name:
+          type: string
+          readOnly: true
+        last_visit:
+          type: string
+          format: date-time
+          nullable: true
+          title: Última Visita
+        total_appointments:
+          type: integer
+          readOnly: true
+        total_spent:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,13}(?:\.\d{0,2})?$
+          readOnly: true
+        average_rating_given:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,1}(?:\.\d{0,2})?$
+          readOnly: true
+        is_frequent_customer:
+          type: boolean
+          readOnly: true
+        is_vip_customer:
+          type: boolean
+          readOnly: true
+        days_since_last_visit:
+          type: integer
+          readOnly: true
+        is_active_customer:
+          type: boolean
+          readOnly: true
+        customer_tier:
+          type: string
+          readOnly: true
+      required:
+      - barbershop
+    BarbershopCustomerDetail:
+      type: object
+      description: Detailed serializer for barbershop customer relationship
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        customer:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+          title: Cliente
+        customer_name:
+          type: string
+          readOnly: true
+        customer_username:
+          type: string
+          readOnly: true
+        customer_email:
+          type: string
+          readOnly: true
+        customer_phone:
+          type: string
+          readOnly: true
+        barbershop:
+          type: string
+          format: uuid
+          readOnly: true
+          title: Barbearia
+        barbershop_name:
+          type: string
+          readOnly: true
+        last_visit:
+          type: string
+          format: date-time
+          nullable: true
+          title: Última Visita
+        total_appointments:
+          type: integer
+          readOnly: true
+        total_spent:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,13}(?:\.\d{0,2})?$
+          readOnly: true
+        average_rating_given:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,1}(?:\.\d{0,2})?$
+          readOnly: true
+        is_frequent_customer:
+          type: boolean
+          readOnly: true
+        is_vip_customer:
+          type: boolean
+          readOnly: true
+        days_since_last_visit:
+          type: integer
+          readOnly: true
+        is_active_customer:
+          type: boolean
+          readOnly: true
+        customer_tier:
+          type: string
+          readOnly: true
+    BarbershopCustomerList:
+      type: object
+      description: Simplified serializer for barbershop customer lists
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        customer:
+          type: string
+          format: uuid
+          nullable: true
+          title: Cliente
+        customer_name:
+          type: string
+          readOnly: true
+        customer_username:
+          type: string
+          readOnly: true
+        barbershop:
+          type: string
+          format: uuid
+          title: Barbearia
+        last_visit:
+          type: string
+          format: date-time
+          nullable: true
+          title: Última Visita
+        total_appointments:
+          type: integer
+          readOnly: true
+        total_spent:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,13}(?:\.\d{0,2})?$
+          readOnly: true
+        customer_tier:
+          type: string
+          readOnly: true
+        is_active_customer:
+          type: boolean
+          readOnly: true
+      required:
+      - barbershop
+    BarbershopCustomerRequest:
+      type: object
+      description: Serializer for BarbershopCustomer model with all fields
+      properties:
+        customer:
+          type: string
+          format: uuid
+          nullable: true
+          title: Cliente
+        barbershop:
+          type: string
+          format: uuid
+          title: Barbearia
+        last_visit:
+          type: string
+          format: date-time
+          nullable: true
+          title: Última Visita
+      required:
+      - barbershop
+    BarbershopDetail:
+      type: object
+      description: Detailed serializer for barbershop profile
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          title: Nome
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+          title: Descrição
+        cnpj:
+          type: string
+          nullable: true
+          maxLength: 20
+        formatted_cnpj:
+          type: string
+          readOnly: true
+        address:
+          type: string
+          title: Endereço
+          maxLength: 255
+        email:
+          type: string
+          format: email
+          nullable: true
+          maxLength: 254
+        phone:
+          type: string
+          nullable: true
+          title: Telefone
+          maxLength: 20
+        formatted_phone:
+          type: string
+          readOnly: true
+        website:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        logo:
+          type: string
+          format: uri
+          nullable: true
+        owner:
+          type: string
+          format: uuid
+          readOnly: true
+          title: Proprietário
+        owner_name:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Criado em
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Atualizado em
+        total_services:
+          type: integer
+          readOnly: true
+        available_services_count:
+          type: integer
+          readOnly: true
+        average_service_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          readOnly: true
+        total_customers:
+          type: integer
+          readOnly: true
+        total_appointments:
+          type: integer
+          readOnly: true
+        total_revenue:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,13}(?:\.\d{0,2})?$
+          readOnly: true
+        has_logo:
+          type: boolean
+          readOnly: true
+        has_contact_info:
+          type: boolean
+          readOnly: true
+      required:
+      - address
+      - name
+    BarbershopList:
+      type: object
+      description: Simplified serializer for barbershop lists
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          title: Nome
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+          title: Descrição
+        address:
+          type: string
+          title: Endereço
+          maxLength: 255
+        email:
+          type: string
+          format: email
+          nullable: true
+          maxLength: 254
+        phone:
+          type: string
+          nullable: true
+          title: Telefone
+          maxLength: 20
+        formatted_phone:
+          type: string
+          readOnly: true
+        website:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        logo:
+          type: string
+          format: uri
+          nullable: true
+        owner_name:
+          type: string
+          readOnly: true
+        total_services:
+          type: integer
+          readOnly: true
+        average_service_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          readOnly: true
+        has_logo:
+          type: boolean
+          readOnly: true
+      required:
+      - address
+      - name
+    BarbershopUpdate:
+      type: object
+      description: Serializer for updating barbershops
+      properties:
+        name:
+          type: string
+          title: Nome
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+          title: Descrição
+        cnpj:
+          type: string
+          nullable: true
+          maxLength: 20
+        address:
+          type: string
+          title: Endereço
+          maxLength: 255
+        email:
+          type: string
+          format: email
+          nullable: true
+          maxLength: 254
+        phone:
+          type: string
+          nullable: true
+          title: Telefone
+          maxLength: 20
+        website:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        logo:
+          type: string
+          format: uri
+          nullable: true
+      required:
+      - address
+      - name
+    BarbershopUpdateRequest:
+      type: object
+      description: Serializer for updating barbershops
+      properties:
+        name:
+          type: string
+          minLength: 1
+          title: Nome
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+          title: Descrição
+        cnpj:
+          type: string
+          nullable: true
+          maxLength: 20
+        address:
+          type: string
+          minLength: 1
+          title: Endereço
+          maxLength: 255
+        email:
+          type: string
+          format: email
+          nullable: true
+          maxLength: 254
+        phone:
+          type: string
+          nullable: true
+          title: Telefone
+          maxLength: 20
+        website:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        logo:
+          type: string
+          format: binary
+          nullable: true
+      required:
+      - address
+      - name
+    ChangePassword:
+      type: object
+      description: Serializer for changing user password
+      properties:
+        old_password:
+          type: string
+        new_password:
+          type: string
+      required:
+      - new_password
+      - old_password
+    ChangePasswordRequest:
+      type: object
+      description: Serializer for changing user password
+      properties:
+        old_password:
+          type: string
+          minLength: 1
+        new_password:
+          type: string
+          minLength: 1
+      required:
+      - new_password
+      - old_password
+    CustomTokenObtainPairRequest:
+      type: object
+      description: Serializer customizado que verifica se o usuário está ativo.
+      properties:
+        username:
+          type: string
+          writeOnly: true
+          minLength: 1
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - password
+      - username
+    MethodEnum:
+      enum:
+      - PIX
+      - CREDIT_CARD
+      - DEBIT_CARD
+      - CASH
+      type: string
+      description: |-
+        * `PIX` - Pix
+        * `CREDIT_CARD` - Cartão de Crédito
+        * `DEBIT_CARD` - Cartão de Débito
+        * `CASH` - Dinheiro
+    PaginatedAppointmentListList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AppointmentList'
+    PaginatedBarberScheduleListList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/BarberScheduleList'
+    PaginatedBarbershopCustomerListList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/BarbershopCustomerList'
+    PaginatedBarbershopListList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/BarbershopList'
+    PaginatedPaymentListList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/PaymentList'
+    PaginatedReviewListList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReviewList'
+    PaginatedServiceListList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ServiceList'
+    PaginatedUserListList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserList'
+    PatchedAppointmentUpdateRequest:
+      type: object
+      description: Serializer for updating appointments
+      properties:
+        start_datetime:
+          type: string
+          format: date-time
+          title: Data e Hora de Início
+        end_datetime:
+          type: string
+          format: date-time
+          title: Data e Hora de Término
+        status:
+          $ref: '#/components/schemas/Status2d1Enum'
+        final_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          nullable: true
+          title: Preço Final
+    PatchedBarberScheduleUpdateRequest:
+      type: object
+      description: Serializer for updating barber schedules
+      properties:
+        weekday:
+          allOf:
+          - $ref: '#/components/schemas/WeekdayEnum'
+          title: Dia da Semana
+          minimum: -9223372036854775808
+          maximum: 9223372036854775807
+        start_time:
+          type: string
+          format: time
+          title: Hora de Início
+        end_time:
+          type: string
+          format: time
+          title: Hora de Término
+        is_available:
+          type: boolean
+          title: Disponível
+    PatchedBarbershopCustomerRequest:
+      type: object
+      description: Serializer for BarbershopCustomer model with all fields
+      properties:
+        customer:
+          type: string
+          format: uuid
+          nullable: true
+          title: Cliente
+        barbershop:
+          type: string
+          format: uuid
+          title: Barbearia
+        last_visit:
+          type: string
+          format: date-time
+          nullable: true
+          title: Última Visita
+    PatchedBarbershopUpdateRequest:
+      type: object
+      description: Serializer for updating barbershops
+      properties:
+        name:
+          type: string
+          minLength: 1
+          title: Nome
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+          title: Descrição
+        cnpj:
+          type: string
+          nullable: true
+          maxLength: 20
+        address:
+          type: string
+          minLength: 1
+          title: Endereço
+          maxLength: 255
+        email:
+          type: string
+          format: email
+          nullable: true
+          maxLength: 254
+        phone:
+          type: string
+          nullable: true
+          title: Telefone
+          maxLength: 20
+        website:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        logo:
+          type: string
+          format: binary
+          nullable: true
+    PatchedPaymentConfirmRequest:
+      type: object
+      description: Serializer for confirming payments
+      properties:
+        transaction_id:
+          type: string
+          format: uuid
+          nullable: true
+        notes:
+          type: string
+    PatchedPaymentRefundRequest:
+      type: object
+      description: Serializer for refunding payments
+      properties:
+        notes:
+          type: string
+    PatchedPaymentUpdateRequest:
+      type: object
+      description: Serializer for updating payments
+      properties:
+        method:
+          allOf:
+          - $ref: '#/components/schemas/MethodEnum'
+          title: Método de Pagamento
+        notes:
+          type: string
+          nullable: true
+          title: Notas
+    PatchedReviewUpdateRequest:
+      type: object
+      description: |-
+        Serializer para atualização de avaliações.
+        Permite apenas atualizar rating e comentário.
+      properties:
+        rating:
+          allOf:
+          - $ref: '#/components/schemas/RatingEnum'
+          title: Avaliação
+          minimum: 0
+          maximum: 9223372036854775807
+        comment:
+          type: string
+          nullable: true
+          title: Comentário
+    PatchedServiceUpdateRequest:
+      type: object
+      description: Serializer for updating services
+      properties:
+        name:
+          type: string
+          minLength: 1
+          title: Nome
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+          title: Descrição
+        image:
+          type: string
+          format: binary
+          nullable: true
+          title: Imagem
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          title: Preço
+        duration:
+          type: string
+          title: Duração
+        available:
+          type: boolean
+          title: Disponível
+    PatchedUserRequest:
+      type: object
+      description: Serializer for User model with all fields
+      properties:
+        username:
+          type: string
+          minLength: 1
+          title: Usuário
+          description: Obrigatório. 150 caracteres ou menos. Letras, números e @/./+/-/_
+            apenas.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          minLength: 1
+          maxLength: 254
+        first_name:
+          type: string
+          title: Primeiro nome
+          maxLength: 150
+        last_name:
+          type: string
+          title: Último nome
+          maxLength: 150
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          title: Função
+        is_barbershop_owner:
+          type: boolean
+          title: Proprietário de Barbearia
+        phone:
+          type: string
+          nullable: true
+          title: Telefone
+          maxLength: 20
+        birth_date:
+          type: string
+          format: date
+          nullable: true
+          title: Data de Nascimento
+        profile_picture:
+          type: string
+          format: binary
+          nullable: true
+          title: Foto de Perfil
+        bio:
+          type: string
+          nullable: true
+          title: Biografia
+        is_active:
+          type: boolean
+          title: Ativo
+          description: Indica que o usuário será tratado como ativo. Ao invés de excluir
+            contas de usuário, desmarque isso.
+        is_staff:
+          type: boolean
+          title: Membro da equipe
+          description: Indica que usuário consegue acessar este site de administração.
+    PatchedUserUpdateRequest:
+      type: object
+      description: Serializer for updating user profile
+      properties:
+        first_name:
+          type: string
+          title: Primeiro nome
+          maxLength: 150
+        last_name:
+          type: string
+          title: Último nome
+          maxLength: 150
+        phone:
+          type: string
+          nullable: true
+          title: Telefone
+          maxLength: 20
+        birth_date:
+          type: string
+          format: date
+          nullable: true
+          title: Data de Nascimento
+        profile_picture:
+          type: string
+          format: binary
+          nullable: true
+          title: Foto de Perfil
+        bio:
+          type: string
+          nullable: true
+          title: Biografia
+    Payment:
+      type: object
+      description: Serializer for Payment model with all fields
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        appointment:
+          type: string
+          format: uuid
+          title: Agendamento
+        appointment_details:
+          allOf:
+          - $ref: '#/components/schemas/AppointmentList'
+          readOnly: true
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          title: Valor
+        formatted_amount:
+          type: string
+          readOnly: true
+        method:
+          allOf:
+          - $ref: '#/components/schemas/MethodEnum'
+          title: Método de Pagamento
+        method_display:
+          type: string
+          readOnly: true
+        method_icon:
+          type: string
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/Status0ffEnum'
+          title: Status do Pagamento
+        status_display:
+          type: string
+          readOnly: true
+        status_icon:
+          type: string
+          readOnly: true
+        transaction_id:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+          title: ID da Transação
+        payment_date:
+          type: string
+          format: date-time
+          nullable: true
+          title: Data do Pagamento
+        notes:
+          type: string
+          nullable: true
+          title: Notas
+        customer_name:
+          type: string
+          readOnly: true
+        service_name:
+          type: string
+          readOnly: true
+        barbershop_name:
+          type: string
+          readOnly: true
+        payment_age_days:
+          type: integer
+          readOnly: true
+        is_paid:
+          type: boolean
+          readOnly: true
+        is_pending:
+          type: boolean
+          readOnly: true
+        is_refunded:
+          type: boolean
+          readOnly: true
+        is_card_payment:
+          type: boolean
+          readOnly: true
+        is_cash_payment:
+          type: boolean
+          readOnly: true
+        is_digital_payment:
+          type: boolean
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Criado em
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Atualizado em
+      required:
+      - amount
+      - appointment
+    PaymentConfirm:
+      type: object
+      description: Serializer for confirming payments
+      properties:
+        transaction_id:
+          type: string
+          format: uuid
+          nullable: true
+        notes:
+          type: string
+    PaymentCreate:
+      type: object
+      description: Serializer for creating payments
+      properties:
+        appointment:
+          type: string
+          format: uuid
+          title: Agendamento
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          title: Valor
+        method:
+          allOf:
+          - $ref: '#/components/schemas/MethodEnum'
+          title: Método de Pagamento
+        notes:
+          type: string
+          nullable: true
+          title: Notas
+      required:
+      - amount
+      - appointment
+    PaymentCreateRequest:
+      type: object
+      description: Serializer for creating payments
+      properties:
+        appointment:
+          type: string
+          format: uuid
+          title: Agendamento
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          title: Valor
+        method:
+          allOf:
+          - $ref: '#/components/schemas/MethodEnum'
+          title: Método de Pagamento
+        notes:
+          type: string
+          nullable: true
+          title: Notas
+      required:
+      - amount
+      - appointment
+    PaymentDetail:
+      type: object
+      description: Serializer for payment detail view with comprehensive information
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        appointment:
+          type: string
+          format: uuid
+          title: Agendamento
+        appointment_details:
+          allOf:
+          - $ref: '#/components/schemas/AppointmentList'
+          readOnly: true
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          title: Valor
+        formatted_amount:
+          type: string
+          readOnly: true
+        method:
+          allOf:
+          - $ref: '#/components/schemas/MethodEnum'
+          title: Método de Pagamento
+        method_display:
+          type: string
+          readOnly: true
+        method_icon:
+          type: string
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/Status0ffEnum'
+          title: Status do Pagamento
+        status_display:
+          type: string
+          readOnly: true
+        status_icon:
+          type: string
+          readOnly: true
+        transaction_id:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+          title: ID da Transação
+        payment_date:
+          type: string
+          format: date-time
+          nullable: true
+          title: Data do Pagamento
+        notes:
+          type: string
+          nullable: true
+          title: Notas
+        customer_name:
+          type: string
+          readOnly: true
+        service_name:
+          type: string
+          readOnly: true
+        barbershop_name:
+          type: string
+          readOnly: true
+        payment_age_days:
+          type: integer
+          readOnly: true
+        is_paid:
+          type: boolean
+          readOnly: true
+        is_pending:
+          type: boolean
+          readOnly: true
+        is_refunded:
+          type: boolean
+          readOnly: true
+        is_card_payment:
+          type: boolean
+          readOnly: true
+        is_cash_payment:
+          type: boolean
+          readOnly: true
+        is_digital_payment:
+          type: boolean
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Criado em
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Atualizado em
+      required:
+      - amount
+      - appointment
+    PaymentList:
+      type: object
+      description: Serializer for listing payments with essential fields
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        appointment:
+          type: string
+          format: uuid
+          title: Agendamento
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          title: Valor
+        formatted_amount:
+          type: string
+          readOnly: true
+        method:
+          allOf:
+          - $ref: '#/components/schemas/MethodEnum'
+          title: Método de Pagamento
+        method_display:
+          type: string
+          readOnly: true
+        method_icon:
+          type: string
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/Status0ffEnum'
+          title: Status do Pagamento
+        status_display:
+          type: string
+          readOnly: true
+        status_icon:
+          type: string
+          readOnly: true
+        payment_date:
+          type: string
+          format: date-time
+          nullable: true
+          title: Data do Pagamento
+        customer_name:
+          type: string
+          readOnly: true
+        service_name:
+          type: string
+          readOnly: true
+        barbershop_name:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Criado em
+      required:
+      - amount
+      - appointment
+    PaymentRefund:
+      type: object
+      description: Serializer for refunding payments
+      properties:
+        notes:
+          type: string
+    PaymentUpdate:
+      type: object
+      description: Serializer for updating payments
+      properties:
+        method:
+          allOf:
+          - $ref: '#/components/schemas/MethodEnum'
+          title: Método de Pagamento
+        notes:
+          type: string
+          nullable: true
+          title: Notas
+    PaymentUpdateRequest:
+      type: object
+      description: Serializer for updating payments
+      properties:
+        method:
+          allOf:
+          - $ref: '#/components/schemas/MethodEnum'
+          title: Método de Pagamento
+        notes:
+          type: string
+          nullable: true
+          title: Notas
+    RatingEnum:
+      enum:
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
+      type: integer
+      description: |-
+        * `1` - 1 Estrela
+        * `2` - 2 Estrelas
+        * `3` - 3 Estrelas
+        * `4` - 4 Estrelas
+        * `5` - 5 Estrelas
+    ReviewCreate:
+      type: object
+      description: Serializer para criação de avaliações.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        rating:
+          allOf:
+          - $ref: '#/components/schemas/RatingEnum'
+          title: Avaliação
+          minimum: 0
+          maximum: 9223372036854775807
+        comment:
+          type: string
+          nullable: true
+          title: Comentário
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Criado em
+      required:
+      - rating
+    ReviewCreateRequest:
+      type: object
+      description: Serializer para criação de avaliações.
+      properties:
+        barbershop_customer_id:
+          type: string
+          format: uuid
+          writeOnly: true
+        barber_id:
+          type: string
+          format: uuid
+          writeOnly: true
+        service_id:
+          type: string
+          format: uuid
+          writeOnly: true
+        barbershop_id:
+          type: string
+          format: uuid
+          writeOnly: true
+        rating:
+          allOf:
+          - $ref: '#/components/schemas/RatingEnum'
+          title: Avaliação
+          minimum: 0
+          maximum: 9223372036854775807
+        comment:
+          type: string
+          nullable: true
+          title: Comentário
+      required:
+      - barber_id
+      - barbershop_customer_id
+      - barbershop_id
+      - rating
+      - service_id
+    ReviewDetail:
+      type: object
+      description: Serializer detalhado para visualização de avaliações.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        barbershop_customer:
+          type: string
+          format: uuid
+          title: Cliente da Barbearia
+        barbershop_customer_details:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+        barber:
+          type: string
+          format: uuid
+          title: Barbeiro
+        barber_details:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+        service:
+          type: string
+          format: uuid
+          title: Serviço
+        service_details:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+        barbershop:
+          type: string
+          format: uuid
+          title: Barbearia
+        barbershop_details:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+        rating:
+          allOf:
+          - $ref: '#/components/schemas/RatingEnum'
+          title: Avaliação
+          minimum: 0
+          maximum: 9223372036854775807
+        rating_stars:
+          type: string
+          readOnly: true
+        rating_display_with_stars:
+          type: string
+          readOnly: true
+        comment:
+          type: string
+          nullable: true
+          title: Comentário
+        short_comment:
+          type: string
+          readOnly: true
+        customer_name:
+          type: string
+          readOnly: true
+        barber_name:
+          type: string
+          readOnly: true
+        service_name:
+          type: string
+          readOnly: true
+        barbershop_name:
+          type: string
+          readOnly: true
+        review_age_days:
+          type: integer
+          readOnly: true
+        is_positive_review:
+          type: boolean
+          readOnly: true
+        is_negative_review:
+          type: boolean
+          readOnly: true
+        is_neutral_review:
+          type: boolean
+          readOnly: true
+        is_recent_review:
+          type: boolean
+          readOnly: true
+        has_comment:
+          type: boolean
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Criado em
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Atualizado em
+      required:
+      - barber
+      - barbershop
+      - barbershop_customer
+      - rating
+      - service
+    ReviewList:
+      type: object
+      description: Serializer otimizado para listagem de avaliações.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        barbershop_customer:
+          type: string
+          format: uuid
+          title: Cliente da Barbearia
+        barber:
+          type: string
+          format: uuid
+          title: Barbeiro
+        service:
+          type: string
+          format: uuid
+          title: Serviço
+        barbershop:
+          type: string
+          format: uuid
+          title: Barbearia
+        rating:
+          allOf:
+          - $ref: '#/components/schemas/RatingEnum'
+          title: Avaliação
+          minimum: 0
+          maximum: 9223372036854775807
+        rating_stars:
+          type: string
+          readOnly: true
+        rating_display_with_stars:
+          type: string
+          readOnly: true
+        comment:
+          type: string
+          nullable: true
+          title: Comentário
+        short_comment:
+          type: string
+          readOnly: true
+        customer_name:
+          type: string
+          readOnly: true
+        barber_name:
+          type: string
+          readOnly: true
+        service_name:
+          type: string
+          readOnly: true
+        barbershop_name:
+          type: string
+          readOnly: true
+        review_age_days:
+          type: integer
+          readOnly: true
+        is_positive_review:
+          type: boolean
+          readOnly: true
+        is_negative_review:
+          type: boolean
+          readOnly: true
+        is_recent_review:
+          type: boolean
+          readOnly: true
+        has_comment:
+          type: boolean
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Criado em
+      required:
+      - barber
+      - barbershop
+      - barbershop_customer
+      - rating
+      - service
+    ReviewUpdate:
+      type: object
+      description: |-
+        Serializer para atualização de avaliações.
+        Permite apenas atualizar rating e comentário.
+      properties:
+        rating:
+          allOf:
+          - $ref: '#/components/schemas/RatingEnum'
+          title: Avaliação
+          minimum: 0
+          maximum: 9223372036854775807
+        comment:
+          type: string
+          nullable: true
+          title: Comentário
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Atualizado em
+      required:
+      - rating
+    ReviewUpdateRequest:
+      type: object
+      description: |-
+        Serializer para atualização de avaliações.
+        Permite apenas atualizar rating e comentário.
+      properties:
+        rating:
+          allOf:
+          - $ref: '#/components/schemas/RatingEnum'
+          title: Avaliação
+          minimum: 0
+          maximum: 9223372036854775807
+        comment:
+          type: string
+          nullable: true
+          title: Comentário
+      required:
+      - rating
+    RoleEnum:
+      enum:
+      - CLIENT
+      - BARBER
+      - ADMIN
+      type: string
+      description: |-
+        * `CLIENT` - Cliente
+        * `BARBER` - Barbeiro
+        * `ADMIN` - Administrador
+    Service:
+      type: object
+      description: Serializer for Service model with all fields
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        barbershop:
+          type: string
+          format: uuid
+          title: Barbearia
+        barbershop_name:
+          type: string
+          readOnly: true
+        name:
+          type: string
+          title: Nome
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+          title: Descrição
+        image:
+          type: string
+          format: uri
+          nullable: true
+          title: Imagem
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          title: Preço
+        formatted_price:
+          type: string
+          readOnly: true
+        duration:
+          type: string
+          title: Duração
+        duration_in_minutes:
+          type: integer
+          readOnly: true
+        formatted_duration:
+          type: string
+          readOnly: true
+        available:
+          type: boolean
+          title: Disponível
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Criado em
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Atualizado em
+        total_appointments:
+          type: integer
+          readOnly: true
+        total_revenue:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,13}(?:\.\d{0,2})?$
+          readOnly: true
+        average_rating:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,1}(?:\.\d{0,2})?$
+          readOnly: true
+        is_popular:
+          type: boolean
+          readOnly: true
+        has_description:
+          type: boolean
+          readOnly: true
+      required:
+      - barbershop
+      - duration
+      - name
+      - price
+    ServiceCreate:
+      type: object
+      description: Serializer for creating services
+      properties:
+        barbershop:
+          type: string
+          format: uuid
+          title: Barbearia
+        name:
+          type: string
+          title: Nome
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+          title: Descrição
+        image:
+          type: string
+          format: uri
+          nullable: true
+          title: Imagem
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          title: Preço
+        duration:
+          type: string
+          title: Duração
+        available:
+          type: boolean
+          title: Disponível
+      required:
+      - barbershop
+      - duration
+      - name
+      - price
+    ServiceCreateRequest:
+      type: object
+      description: Serializer for creating services
+      properties:
+        barbershop:
+          type: string
+          format: uuid
+          title: Barbearia
+        name:
+          type: string
+          minLength: 1
+          title: Nome
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+          title: Descrição
+        image:
+          type: string
+          format: binary
+          nullable: true
+          title: Imagem
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          title: Preço
+        duration:
+          type: string
+          title: Duração
+        available:
+          type: boolean
+          title: Disponível
+      required:
+      - barbershop
+      - duration
+      - name
+      - price
+    ServiceDetail:
+      type: object
+      description: Detailed serializer for service profile
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        barbershop:
+          type: string
+          format: uuid
+          readOnly: true
+          title: Barbearia
+        barbershop_name:
+          type: string
+          readOnly: true
+        barbershop_owner:
+          type: string
+          readOnly: true
+        name:
+          type: string
+          title: Nome
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+          title: Descrição
+        image:
+          type: string
+          format: uri
+          nullable: true
+          title: Imagem
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          title: Preço
+        formatted_price:
+          type: string
+          readOnly: true
+        duration:
+          type: string
+          title: Duração
+        duration_in_minutes:
+          type: integer
+          readOnly: true
+        formatted_duration:
+          type: string
+          readOnly: true
+        available:
+          type: boolean
+          title: Disponível
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Criado em
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Atualizado em
+        total_appointments:
+          type: integer
+          readOnly: true
+        total_revenue:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,13}(?:\.\d{0,2})?$
+          readOnly: true
+        average_rating:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,1}(?:\.\d{0,2})?$
+          readOnly: true
+        is_popular:
+          type: boolean
+          readOnly: true
+        has_description:
+          type: boolean
+          readOnly: true
+      required:
+      - duration
+      - name
+      - price
+    ServiceList:
+      type: object
+      description: Simplified serializer for service lists
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        barbershop:
+          type: string
+          format: uuid
+          title: Barbearia
+        barbershop_name:
+          type: string
+          readOnly: true
+        name:
+          type: string
+          title: Nome
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+          title: Descrição
+        image:
+          type: string
+          format: uri
+          nullable: true
+          title: Imagem
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          title: Preço
+        formatted_price:
+          type: string
+          readOnly: true
+        duration:
+          type: string
+          title: Duração
+        formatted_duration:
+          type: string
+          readOnly: true
+        available:
+          type: boolean
+          title: Disponível
+        is_popular:
+          type: boolean
+          readOnly: true
+      required:
+      - barbershop
+      - duration
+      - name
+      - price
+    ServiceRequest:
+      type: object
+      description: Serializer for Service model with all fields
+      properties:
+        barbershop:
+          type: string
+          format: uuid
+          title: Barbearia
+        name:
+          type: string
+          minLength: 1
+          title: Nome
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+          title: Descrição
+        image:
+          type: string
+          format: binary
+          nullable: true
+          title: Imagem
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          title: Preço
+        duration:
+          type: string
+          title: Duração
+        available:
+          type: boolean
+          title: Disponível
+      required:
+      - barbershop
+      - duration
+      - name
+      - price
+    ServiceUpdate:
+      type: object
+      description: Serializer for updating services
+      properties:
+        name:
+          type: string
+          title: Nome
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+          title: Descrição
+        image:
+          type: string
+          format: uri
+          nullable: true
+          title: Imagem
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          title: Preço
+        duration:
+          type: string
+          title: Duração
+        available:
+          type: boolean
+          title: Disponível
+      required:
+      - duration
+      - name
+      - price
+    ServiceUpdateRequest:
+      type: object
+      description: Serializer for updating services
+      properties:
+        name:
+          type: string
+          minLength: 1
+          title: Nome
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+          title: Descrição
+        image:
+          type: string
+          format: binary
+          nullable: true
+          title: Imagem
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          title: Preço
+        duration:
+          type: string
+          title: Duração
+        available:
+          type: boolean
+          title: Disponível
+      required:
+      - duration
+      - name
+      - price
+    Status0ffEnum:
+      enum:
+      - PENDING
+      - PAID
+      - REFUNDED
+      type: string
+      description: |-
+        * `PENDING` - Pendente
+        * `PAID` - Pago
+        * `REFUNDED` - Reembolsado
+    Status2d1Enum:
+      enum:
+      - PENDING
+      - CONFIRMED
+      - COMPLETED
+      - CANCELLED
+      type: string
+      description: |-
+        * `PENDING` - Pendente
+        * `CONFIRMED` - Confirmado
+        * `COMPLETED` - Concluído
+        * `CANCELLED` - Cancelado
+    TokenBlacklistRequest:
+      type: object
+      properties:
+        refresh:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - refresh
+    TokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+    TokenRefreshRequest:
+      type: object
+      properties:
+        refresh:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - refresh
+    TokenVerifyRequest:
+      type: object
+      properties:
+        token:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - token
+    User:
+      type: object
+      description: Serializer for User model with all fields
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        username:
+          type: string
+          title: Usuário
+          description: Obrigatório. 150 caracteres ou menos. Letras, números e @/./+/-/_
+            apenas.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        first_name:
+          type: string
+          title: Primeiro nome
+          maxLength: 150
+        last_name:
+          type: string
+          title: Último nome
+          maxLength: 150
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          title: Função
+        is_barbershop_owner:
+          type: boolean
+          title: Proprietário de Barbearia
+        phone:
+          type: string
+          nullable: true
+          title: Telefone
+          maxLength: 20
+        birth_date:
+          type: string
+          format: date
+          nullable: true
+          title: Data de Nascimento
+        profile_picture:
+          type: string
+          format: uri
+          nullable: true
+          title: Foto de Perfil
+        bio:
+          type: string
+          nullable: true
+          title: Biografia
+        date_joined:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Data de registro
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Data de Atualização
+        is_active:
+          type: boolean
+          title: Ativo
+          description: Indica que o usuário será tratado como ativo. Ao invés de excluir
+            contas de usuário, desmarque isso.
+        is_staff:
+          type: boolean
+          title: Membro da equipe
+          description: Indica que usuário consegue acessar este site de administração.
+      required:
+      - email
+      - username
+    UserCreate:
+      type: object
+      description: Serializer for creating users
+      properties:
+        username:
+          type: string
+          title: Usuário
+          description: Obrigatório. 150 caracteres ou menos. Letras, números e @/./+/-/_
+            apenas.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        first_name:
+          type: string
+          title: Primeiro nome
+          maxLength: 150
+        last_name:
+          type: string
+          title: Último nome
+          maxLength: 150
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          title: Função
+        phone:
+          type: string
+          nullable: true
+          title: Telefone
+          maxLength: 20
+        birth_date:
+          type: string
+          format: date
+          nullable: true
+          title: Data de Nascimento
+        profile_picture:
+          type: string
+          format: uri
+          nullable: true
+          title: Foto de Perfil
+        bio:
+          type: string
+          nullable: true
+          title: Biografia
+      required:
+      - email
+      - username
+    UserCreateRequest:
+      type: object
+      description: Serializer for creating users
+      properties:
+        username:
+          type: string
+          minLength: 1
+          title: Usuário
+          description: Obrigatório. 150 caracteres ou menos. Letras, números e @/./+/-/_
+            apenas.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          minLength: 1
+          maxLength: 254
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
+        first_name:
+          type: string
+          title: Primeiro nome
+          maxLength: 150
+        last_name:
+          type: string
+          title: Último nome
+          maxLength: 150
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          title: Função
+        phone:
+          type: string
+          nullable: true
+          title: Telefone
+          maxLength: 20
+        birth_date:
+          type: string
+          format: date
+          nullable: true
+          title: Data de Nascimento
+        profile_picture:
+          type: string
+          format: binary
+          nullable: true
+          title: Foto de Perfil
+        bio:
+          type: string
+          nullable: true
+          title: Biografia
+      required:
+      - email
+      - password
+      - username
+    UserDetail:
+      type: object
+      description: Detailed serializer for user profile
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        username:
+          type: string
+          readOnly: true
+          title: Usuário
+          description: Obrigatório. 150 caracteres ou menos. Letras, números e @/./+/-/_
+            apenas.
+        email:
+          type: string
+          format: email
+          readOnly: true
+        first_name:
+          type: string
+          title: Primeiro nome
+          maxLength: 150
+        last_name:
+          type: string
+          title: Último nome
+          maxLength: 150
+        full_name:
+          type: string
+          readOnly: true
+        display_name:
+          type: string
+          readOnly: true
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          title: Função
+        role_display:
+          type: string
+          readOnly: true
+        is_barbershop_owner:
+          type: boolean
+          title: Proprietário de Barbearia
+        phone:
+          type: string
+          nullable: true
+          title: Telefone
+          maxLength: 20
+        birth_date:
+          type: string
+          format: date
+          nullable: true
+          title: Data de Nascimento
+        age:
+          type: integer
+          readOnly: true
+        profile_picture:
+          type: string
+          format: uri
+          nullable: true
+          title: Foto de Perfil
+        has_profile_picture:
+          type: boolean
+          readOnly: true
+        bio:
+          type: string
+          nullable: true
+          title: Biografia
+        date_joined:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Data de registro
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Data de Atualização
+        is_active:
+          type: boolean
+          title: Ativo
+          description: Indica que o usuário será tratado como ativo. Ao invés de excluir
+            contas de usuário, desmarque isso.
+        profile_completion:
+          type: number
+          format: double
+          readOnly: true
+        is_barber:
+          type: boolean
+          readOnly: true
+        is_client:
+          type: boolean
+          readOnly: true
+        is_admin_user:
+          type: boolean
+          readOnly: true
+    UserList:
+      type: object
+      description: Simplified serializer for user lists
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        username:
+          type: string
+          title: Usuário
+          description: Obrigatório. 150 caracteres ou menos. Letras, números e @/./+/-/_
+            apenas.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        first_name:
+          type: string
+          title: Primeiro nome
+          maxLength: 150
+        last_name:
+          type: string
+          title: Último nome
+          maxLength: 150
+        full_name:
+          type: string
+          readOnly: true
+        display_name:
+          type: string
+          readOnly: true
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          title: Função
+        role_display:
+          type: string
+          readOnly: true
+        is_barbershop_owner:
+          type: boolean
+          title: Proprietário de Barbearia
+        profile_picture:
+          type: string
+          format: uri
+          nullable: true
+          title: Foto de Perfil
+        has_profile_picture:
+          type: boolean
+          readOnly: true
+        is_active:
+          type: boolean
+          title: Ativo
+          description: Indica que o usuário será tratado como ativo. Ao invés de excluir
+            contas de usuário, desmarque isso.
+        date_joined:
+          type: string
+          format: date-time
+          title: Data de registro
+        is_barber:
+          type: boolean
+          readOnly: true
+        is_client:
+          type: boolean
+          readOnly: true
+      required:
+      - email
+      - username
+    UserRequest:
+      type: object
+      description: Serializer for User model with all fields
+      properties:
+        username:
+          type: string
+          minLength: 1
+          title: Usuário
+          description: Obrigatório. 150 caracteres ou menos. Letras, números e @/./+/-/_
+            apenas.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          minLength: 1
+          maxLength: 254
+        first_name:
+          type: string
+          title: Primeiro nome
+          maxLength: 150
+        last_name:
+          type: string
+          title: Último nome
+          maxLength: 150
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          title: Função
+        is_barbershop_owner:
+          type: boolean
+          title: Proprietário de Barbearia
+        phone:
+          type: string
+          nullable: true
+          title: Telefone
+          maxLength: 20
+        birth_date:
+          type: string
+          format: date
+          nullable: true
+          title: Data de Nascimento
+        profile_picture:
+          type: string
+          format: binary
+          nullable: true
+          title: Foto de Perfil
+        bio:
+          type: string
+          nullable: true
+          title: Biografia
+        is_active:
+          type: boolean
+          title: Ativo
+          description: Indica que o usuário será tratado como ativo. Ao invés de excluir
+            contas de usuário, desmarque isso.
+        is_staff:
+          type: boolean
+          title: Membro da equipe
+          description: Indica que usuário consegue acessar este site de administração.
+      required:
+      - email
+      - username
+    UserUpdate:
+      type: object
+      description: Serializer for updating user profile
+      properties:
+        first_name:
+          type: string
+          title: Primeiro nome
+          maxLength: 150
+        last_name:
+          type: string
+          title: Último nome
+          maxLength: 150
+        phone:
+          type: string
+          nullable: true
+          title: Telefone
+          maxLength: 20
+        birth_date:
+          type: string
+          format: date
+          nullable: true
+          title: Data de Nascimento
+        profile_picture:
+          type: string
+          format: uri
+          nullable: true
+          title: Foto de Perfil
+        bio:
+          type: string
+          nullable: true
+          title: Biografia
+    UserUpdateRequest:
+      type: object
+      description: Serializer for updating user profile
+      properties:
+        first_name:
+          type: string
+          title: Primeiro nome
+          maxLength: 150
+        last_name:
+          type: string
+          title: Último nome
+          maxLength: 150
+        phone:
+          type: string
+          nullable: true
+          title: Telefone
+          maxLength: 20
+        birth_date:
+          type: string
+          format: date
+          nullable: true
+          title: Data de Nascimento
+        profile_picture:
+          type: string
+          format: binary
+          nullable: true
+          title: Foto de Perfil
+        bio:
+          type: string
+          nullable: true
+          title: Biografia
+    WeekdayEnum:
+      enum:
+      - 0
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
+      - 6
+      type: integer
+      description: |-
+        * `0` - Domingo
+        * `1` - Segunda-feira
+        * `2` - Terça-feira
+        * `3` - Quarta-feira
+        * `4` - Quinta-feira
+        * `5` - Sexta-feira
+        * `6` - Sábado
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
 servers:
 - url: http://127.0.0.1:8000
   description: Development server
 - url: https://api.yourdomain.com
   description: Production server
 tags:
-- name: users
-  description: Operations related to user management
 - name: authentication
   description: Operations related to user authentication
+- name: users
+  description: Operations related to user management
 - name: barbershops
   description: Operations related to barbershop management
 - name: appointments
