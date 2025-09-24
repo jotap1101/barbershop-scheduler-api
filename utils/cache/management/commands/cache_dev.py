@@ -1,5 +1,5 @@
 """
-Django Management Command para gerenciar e testar cache Redis/Database
+Django Management Command para gerenciar e testar cache Redis
 
 Este comando fornece funcionalidades para:
 - Testar conexão com cache
@@ -21,7 +21,7 @@ from utils.cache.cache_utils import CacheKeys, cache_manager
 
 
 class Command(BaseCommand):
-    help = "Utilitários para gerenciar e testar cache (Redis/Database)"
+    help = "Utilitários para gerenciar e testar cache Redis"
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -73,12 +73,10 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        self.stdout.write(self.style.SUCCESS("=== Barbershop Cache Manager ==="))
+        self.stdout.write(self.style.SUCCESS("=== Barbershop Redis Cache Manager ==="))
 
-        # Mostra backend atual
-        backend_info = cache_manager.get_backend_info()
-        backend_name = "Redis" if backend_info["is_redis"] else "Database"
-        self.stdout.write(f"🔧 Backend atual: {backend_name}")
+        # Mostra informações do Redis
+        self.stdout.write("🔧 Backend: Redis Cache")
 
         if options["test_connection"]:
             self.test_connection()
@@ -146,18 +144,13 @@ class Command(BaseCommand):
             for key, value in backend_info.items():
                 self.stdout.write(f"{key}: {value}")
 
-            if cache_manager.is_redis_backend():
-                self.stdout.write(self.style.SUCCESS("\n=== Estatísticas por Tipo ==="))
-                for key, value in stats.items():
-                    if key.endswith("_keys"):
-                        pattern = key.replace("_keys", "")
-                        self.stdout.write(f"🔑 {pattern}: {value} chaves")
+            self.stdout.write(self.style.SUCCESS("\n=== Estatísticas por Tipo ==="))
+            for key, value in stats.items():
+                if key.endswith("_keys"):
+                    pattern = key.replace("_keys", "")
+                    self.stdout.write(f"🔑 {pattern}: {value} chaves")
 
-                self.stdout.write(f"\n📈 Total de chaves: {stats.get('total_keys', 0)}")
-            else:
-                self.stdout.write(
-                    self.style.WARNING("\n⚠️  Estatísticas detalhadas apenas com Redis")
-                )
+            self.stdout.write(f"\n📈 Total de chaves: {stats.get('total_keys', 0)}")
 
         except Exception as e:
             self.stdout.write(self.style.ERROR(f"❌ Erro ao obter estatísticas: {e}"))
@@ -261,13 +254,7 @@ class Command(BaseCommand):
             self.stdout.write(self.style.ERROR(f"❌ Erro ao limpar padrão: {e}"))
 
     def list_keys(self, pattern):
-        """Lista chaves do cache por padrão"""
-        if not cache_manager.is_redis_backend():
-            self.stdout.write(
-                self.style.ERROR("❌ Listagem de chaves só funciona com Redis")
-            )
-            return
-
+        """Lista chaves do cache Redis por padrão"""
         self.stdout.write(
             self.style.SUCCESS(f"🔍 Buscando chaves com padrão: {pattern}")
         )
@@ -289,13 +276,10 @@ class Command(BaseCommand):
             self.stdout.write(self.style.ERROR(f"❌ Erro ao listar chaves: {e}"))
 
     def monitor_cache(self):
-        """Monitora operações de cache em tempo real"""
+        """Monitora operações de cache Redis em tempo real"""
         self.stdout.write(
-            self.style.SUCCESS("👁️  Monitorando cache (Ctrl+C para parar)...")
+            self.style.SUCCESS("👁️  Monitorando Redis cache (Ctrl+C para parar)...")
         )
-
-        if not cache_manager.is_redis_backend():
-            self.stdout.write(self.style.WARNING("⚠️  Monitoramento limitado sem Redis"))
 
         try:
             start_time = time.time()
@@ -311,26 +295,23 @@ class Command(BaseCommand):
                     f"\n⏱️  {elapsed}s - {datetime.now().strftime('%H:%M:%S')}"
                 )
 
-                if cache_manager.is_redis_backend():
-                    backend_info = current_stats["backend_info"]
-                    self.stdout.write(
-                        f"💾 Memória: {backend_info.get('used_memory', 'N/A')}"
-                    )
-                    self.stdout.write(
-                        f"👥 Clientes: {backend_info.get('connected_clients', 'N/A')}"
-                    )
-                    self.stdout.write(
-                        f"🎯 Hit Rate: {backend_info.get('hit_rate', 'N/A')}"
-                    )
+                backend_info = current_stats["backend_info"]
+                self.stdout.write(
+                    f"💾 Memória: {backend_info.get('used_memory', 'N/A')}"
+                )
+                self.stdout.write(
+                    f"👥 Clientes: {backend_info.get('connected_clients', 'N/A')}"
+                )
+                self.stdout.write(f"🎯 Hit Rate: {backend_info.get('hit_rate', 'N/A')}")
 
-                    # Comparar com stats anteriores
-                    total_keys = current_stats.get("total_keys", 0)
-                    last_total = last_stats.get("total_keys", 0)
-                    key_diff = total_keys - last_total
+                # Comparar com stats anteriores
+                total_keys = current_stats.get("total_keys", 0)
+                last_total = last_stats.get("total_keys", 0)
+                key_diff = total_keys - last_total
 
-                    if key_diff != 0:
-                        sign = "+" if key_diff > 0 else ""
-                        self.stdout.write(f"🔑 Chaves: {total_keys} ({sign}{key_diff})")
+                if key_diff != 0:
+                    sign = "+" if key_diff > 0 else ""
+                    self.stdout.write(f"🔑 Chaves: {total_keys} ({sign}{key_diff})")
 
                 last_stats = current_stats
 
@@ -339,7 +320,7 @@ class Command(BaseCommand):
 
     def show_backend_info(self):
         """Mostra informações detalhadas do backend"""
-        self.stdout.write(self.style.SUCCESS("🔧 Informações do Backend de Cache"))
+        self.stdout.write(self.style.SUCCESS("🔧 Informações do Redis Cache"))
 
         backend_info = cache_manager.get_backend_info()
 
@@ -348,11 +329,10 @@ class Command(BaseCommand):
             if not key.startswith("keyspace") and key not in ["hit_rate"]:
                 self.stdout.write(f"{key}: {value}")
 
-        if cache_manager.is_redis_backend():
-            self.stdout.write(self.style.SUCCESS("\n=== Performance ==="))
-            for key in ["hit_rate", "keyspace_hits", "keyspace_misses"]:
-                if key in backend_info:
-                    self.stdout.write(f"{key}: {backend_info[key]}")
+        self.stdout.write(self.style.SUCCESS("\n=== Performance ==="))
+        for key in ["hit_rate", "keyspace_hits", "keyspace_misses"]:
+            if key in backend_info:
+                self.stdout.write(f"{key}: {backend_info[key]}")
 
         # Configurações do Django
         self.stdout.write(self.style.SUCCESS("\n=== Configuração Django ==="))

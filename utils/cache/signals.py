@@ -5,11 +5,11 @@ Este módulo conecta aos signals do Django para invalidação automática
 de cache quando modelos são modificados
 """
 
-from django.db.models.signals import post_save, post_delete, m2m_changed
-from django.dispatch import receiver
 from django.apps import apps
+from django.db.models.signals import m2m_changed, post_delete, post_save
+from django.dispatch import receiver
 
-from utils.cache import cache_manager, CacheKeys
+from utils.cache import CacheKeys, cache_manager
 
 
 @receiver(post_save, sender="barbershop.Barbershop")
@@ -180,18 +180,13 @@ def manual_cache_invalidation():
 
 def get_cache_stats():
     """
-    Função utilitária para obter estatísticas básicas do cache
+    Função utilitária para obter estatísticas básicas do cache Redis
     Útil para monitoramento e debug
     """
     try:
-        # Para cache database, não temos estatísticas nativas
-        # Retorna informações básicas
-        return {
-            "cache_backend": "django.core.cache.backends.db.DatabaseCache",
-            "cache_tables": ["cache_table", "throttle_cache_table"],
-            "status": "active",
-            "message": "Cache database configurado e funcionando",
-        }
+        from utils.cache.cache_utils import cache_manager
+
+        return cache_manager.get_cache_stats()
     except Exception as e:
         return {
             "status": "error",
