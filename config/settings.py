@@ -325,13 +325,6 @@ SPECTACULAR_SETTINGS = {
     "COMPONENT_SPLIT_PATCH": True,
     "ENUM_GENERATE_CHOICE_DESCRIPTION": True,
     "ENUM_ADD_EXPLICIT_BLANK_NULL_CHOICE": True,
-    "ENUM_NAME_OVERRIDES": {
-        "apps.appointment.models.Appointment.Status": "AppointmentStatusEnum",
-        "apps.payment.models.Payment.Status": "PaymentStatusEnum",
-        "apps.payment.models.Payment.Method": "PaymentMethodEnum",
-        "apps.review.models.Review.Rating": "ReviewRatingEnum",
-        "apps.user.models.User.Role": "UserRoleEnum",
-    },
     "SORT_OPERATIONS": True,
     "SCHEMA_COERCE_PATH_PK": True,
     "SCHEMA_PATH_PREFIX": "/api/",
