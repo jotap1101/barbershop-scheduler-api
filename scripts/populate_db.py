@@ -562,7 +562,7 @@ class DatabasePopulator:
         print(f"✅ {len(self.appointments)} agendamentos criados com sucesso!")
         if attempts >= max_attempts:
             print(
-                f"⚠️  Atingido limite de tentativas. Criados {len(self.appointments)} de {num_appointments} agendamentos."
+                "⚠️  Atingido limite de tentativas. Nem todos os agendamentos foram criados."
             )
 
     def create_payments(self):
