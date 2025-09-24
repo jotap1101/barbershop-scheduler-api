@@ -46,15 +46,18 @@ cd api
 ### 2. Crie e Ative um Ambiente Virtual
 
 **Windows:**
+
 ```cmd
-python -m venv venv
-venv\Scripts\activate
+python -m venv .venv
+cd .venv\Scripts
+activate
 ```
 
 **macOS/Linux:**
+
 ```bash
-python -m venv venv
-source venv/bin/activate
+python3 -m venv .venv
+source .venv/bin/activate
 ```
 
 ### 3. Instale as Dependências
@@ -130,12 +133,14 @@ Após iniciar o servidor, acesse:
 ## 🔑 Endpoints Principais
 
 ### Autenticação
+
 - `POST /api/v1/token/` - Obter token de acesso
 - `POST /api/v1/token/refresh/` - Renovar token
 - `POST /api/v1/token/verify/` - Verificar token
 - `POST /api/v1/token/blacklist/` - Blacklist do token
 
 ### Usuários
+
 - `GET /api/v1/users/` - Listar usuários
 - `POST /api/v1/users/` - Criar usuário
 - `GET /api/v1/users/{id}/` - Detalhar usuário
@@ -143,11 +148,13 @@ Após iniciar o servidor, acesse:
 - `DELETE /api/v1/users/{id}/` - Deletar usuário
 
 ### Barbearias
+
 - `GET /api/v1/barbershops/` - Listar barbearias
 - `POST /api/v1/barbershops/` - Criar barbearia
 - `GET /api/v1/barbershops/{id}/` - Detalhar barbearia
 
 ### Agendamentos
+
 - `GET /api/v1/appointments/` - Listar agendamentos
 - `POST /api/v1/appointments/` - Criar agendamento
 - `GET /api/v1/appointments/{id}/` - Detalhar agendamento
@@ -172,6 +179,7 @@ coverage report
 ## 🔧 Ferramentas de Desenvolvimento
 
 ### Django Extensions
+
 ```bash
 # Listar todas as URLs
 python manage.py show_urls
@@ -184,7 +192,9 @@ python manage.py graph_models -a -o models.png
 ```
 
 ### Logs
+
 Os logs são salvos em:
+
 - `logs/api_usage.log` - Logs de uso da API
 - `logs/api_errors.log` - Logs de erros
 - `logs/django.log` - Logs gerais do Django
@@ -192,11 +202,13 @@ Os logs são salvos em:
 ## 🏷️ Roles e Permissões
 
 ### Tipos de Usuário:
+
 - **CLIENT** - Cliente das barbearias
 - **BARBER** - Barbeiro que trabalha nas barbearias
 - **ADMIN** - Administrador do sistema
 
 ### Permissões Customizadas:
+
 - `IsOwnerOrAdmin` - Proprietário do objeto ou admin
 - `IsAdminOrReadOnly` - Admin pode editar, outros só visualizar
 - `IsBarber` - Apenas barbeiros
@@ -205,20 +217,24 @@ Os logs são salvos em:
 ## 📈 Sistema de Cache
 
 ### Configuração:
+
 - **Cache Padrão**: Dados da aplicação
 - **Cache de Throttle**: Rate limiting
 - **TTL Configurável**: SHORT (5min), MEDIUM (30min), LONG (2h)
 
 ### Invalidação:
+
 O cache é automaticamente invalidado quando os dados são modificados através dos signals do Django.
 
 ## 🚦 Rate Limiting
 
 ### Limits por Usuário:
+
 - **Anônimos**: 50 requisições/hora
 - **Autenticados**: 500 requisições/hora
 
 ### Limits por Escopo:
+
 - **Autenticação**: 10/hora (5/min burst)
 - **Agendamentos**: 30/hora
 - **Pagamentos**: 20/hora (3/min burst)
