@@ -11,8 +11,12 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
     env:
       SECRET_KEY: ${{ secrets.SECRET_KEY }}
       DEBUG: ${{ secrets.DEBUG }}
@@ -23,7 +27,6 @@ jobs:
       max-parallel: 4
       matrix:
         python-version: [3.13.7]
-
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
