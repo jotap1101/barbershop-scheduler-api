@@ -443,7 +443,7 @@ class DatabasePopulator:
 
     def create_appointments(self, num_appointments=200):
         """Cria agendamentos"""
-        print(f"📋 Criando {num_appointments} agendamentos...")
+        print("📋 Criando agendamentos...")
 
         if not self.barbershop_customers or not self.barber_schedules:
             print(
