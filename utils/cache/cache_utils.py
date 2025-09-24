@@ -2,15 +2,20 @@
 Cache utilities para a API Django REST Framework
 
 Este módulo fornece utilitários para cache inteligente e invalidação
+Suporta tanto DatabaseCache quanto Redis com funcionalidades avançadas
 """
 
-from functools import wraps
-from typing import Any, Callable, Optional, Union
-from django.core.cache import cache, caches
-from django.conf import settings
-from django.http import HttpRequest
 import hashlib
 import json
+import logging
+from functools import wraps
+from typing import Any, Callable, List, Optional, Union
+
+from django.conf import settings
+from django.core.cache import cache, caches
+from django.http import HttpRequest
+
+logger = logging.getLogger(__name__)
 
 
 class CacheKeys:
@@ -47,6 +52,59 @@ class CacheManager:
     def __init__(self, cache_name: str = "default"):
         self.cache = caches[cache_name]
         self.ttl_config = getattr(settings, "CACHE_TTL", {})
+        self._redis_client = None
+
+    @property
+    def redis_client(self):
+        """Acesso direto ao cliente Redis para operações avançadas"""
+        if self._redis_client is None and self.is_redis_backend():
+            try:
+                from django_redis import get_redis_connection
+
+                self._redis_client = get_redis_connection("default")
+            except ImportError:
+                logger.warning("django-redis não disponível")
+        return self._redis_client
+
+    def is_redis_backend(self) -> bool:
+        """Verifica se está usando Redis como backend"""
+        backend = settings.CACHES.get("default", {}).get("BACKEND", "")
+        return "redis" in backend.lower()
+
+    def get_backend_info(self) -> dict:
+        """Retorna informações sobre o backend de cache atual"""
+        cache_config = settings.CACHES.get("default", {})
+        info = {
+            "backend": cache_config.get("BACKEND", "Unknown"),
+            "is_redis": self.is_redis_backend(),
+            "location": cache_config.get("LOCATION", "N/A"),
+        }
+
+        if self.is_redis_backend() and self.redis_client:
+            try:
+                redis_info = self.redis_client.info()
+                info.update(
+                    {
+                        "redis_version": redis_info.get("redis_version"),
+                        "used_memory": redis_info.get("used_memory_human"),
+                        "connected_clients": redis_info.get("connected_clients"),
+                        "total_commands_processed": redis_info.get(
+                            "total_commands_processed"
+                        ),
+                        "keyspace_hits": redis_info.get("keyspace_hits", 0),
+                        "keyspace_misses": redis_info.get("keyspace_misses", 0),
+                    }
+                )
+
+                # Calcular hit rate
+                hits = info.get("keyspace_hits", 0)
+                misses = info.get("keyspace_misses", 0)
+                if hits + misses > 0:
+                    info["hit_rate"] = f"{(hits / (hits + misses)) * 100:.2f}%"
+            except Exception as e:
+                logger.error(f"Erro ao obter info do Redis: {e}")
+
+        return info
 
     def get_ttl(self, ttl_type: str) -> int:
         """Retorna TTL baseado no tipo configurado"""
@@ -93,25 +151,136 @@ class CacheManager:
 
         return data
 
+    def get_keys_by_pattern(self, pattern: str) -> List[str]:
+        """Lista chaves por padrão (funciona apenas com Redis)"""
+        if not self.is_redis_backend() or not self.redis_client:
+            logger.warning("get_keys_by_pattern só funciona com Redis backend")
+            return []
+
+        try:
+            key_prefix = settings.CACHES["default"].get("KEY_PREFIX", "")
+            version = settings.CACHES["default"].get("VERSION", 1)
+
+            # Construir padrão completo com prefixo e versão
+            if key_prefix:
+                full_pattern = f"{key_prefix}:{version}:*{pattern}*"
+            else:
+                full_pattern = f"*{pattern}*"
+
+            keys = self.redis_client.keys(full_pattern)
+            return [key.decode() if isinstance(key, bytes) else key for key in keys]
+        except Exception as e:
+            logger.error(f"Erro ao buscar chaves por padrão: {e}")
+            return []
+
+    def clear_pattern(self, pattern: str) -> int:
+        """
+        Limpa cache por padrão
+
+        Args:
+            pattern: Padrão para buscar chaves
+
+        Returns:
+            Número de chaves removidas
+        """
+        if self.is_redis_backend() and self.redis_client:
+            # Redis: suporte nativo para padrões
+            try:
+                keys = self.get_keys_by_pattern(pattern)
+                if keys:
+                    # Remover prefixo e versão para usar com Django cache
+                    cleaned_keys = []
+                    key_prefix = settings.CACHES["default"].get("KEY_PREFIX", "")
+                    version = settings.CACHES["default"].get("VERSION", 1)
+
+                    for key in keys:
+                        if key_prefix:
+                            # Remove prefixo:versão: do início
+                            prefix_pattern = f"{key_prefix}:{version}:"
+                            if key.startswith(prefix_pattern):
+                                cleaned_key = key[len(prefix_pattern) :]
+                                cleaned_keys.append(cleaned_key)
+                        else:
+                            cleaned_keys.append(key)
+
+                    self.cache.delete_many(cleaned_keys)
+                    logger.info(f"Removidas {len(keys)} chaves com padrão '{pattern}'")
+                    return len(keys)
+            except Exception as e:
+                logger.error(f"Erro ao limpar padrão: {e}")
+        else:
+            # DatabaseCache: simula busca por padrão com chaves conhecidas
+            common_suffixes = ["list", "detail", "stats", "popular", "summary"]
+            keys_to_delete = [f"{pattern}:{suffix}" for suffix in common_suffixes]
+
+            # Adiciona algumas variações com IDs
+            for i in range(1, 11):
+                keys_to_delete.append(f"{pattern}:detail:{i}")
+
+            existing_keys = []
+            for key in keys_to_delete:
+                if self.cache.get(key) is not None:
+                    existing_keys.append(key)
+
+            if existing_keys:
+                self.cache.delete_many(existing_keys)
+                logger.info(
+                    f"Removidas {len(existing_keys)} chaves com padrão '{pattern}' (DatabaseCache)"
+                )
+                return len(existing_keys)
+
+        return 0
+
     def invalidate_pattern(self, pattern: str):
         """Invalida todas as chaves que correspondem ao padrão"""
-        # Para cache simples, removemos chaves específicas
-        # Em produção, considere usar Redis com padrões
-        keys_to_delete = []
+        return self.clear_pattern(pattern)
 
-        # Simula busca por padrão (limitação do cache database)
-        # Em produção, use Redis para suporte completo a padrões
-        common_keys = [
-            f"{pattern}:list",
-            f"{pattern}:detail",
-            f"{pattern}:stats",
-            f"{pattern}:popular",
-        ]
+    def get_cache_stats(self) -> dict:
+        """Obtém estatísticas do cache"""
+        stats = {
+            "backend_info": self.get_backend_info(),
+            "total_keys": 0,
+        }
 
-        for key in common_keys:
-            keys_to_delete.append(key)
+        if self.is_redis_backend() and self.redis_client:
+            try:
+                stats["total_keys"] = self.redis_client.dbsize()
 
-        self.cache.delete_many(keys_to_delete)
+                # Estatísticas por padrão
+                patterns = ["barbershop", "service", "appointment", "user", "review"]
+                for pattern in patterns:
+                    keys = self.get_keys_by_pattern(pattern)
+                    stats[f"{pattern}_keys"] = len(keys)
+
+            except Exception as e:
+                logger.error(f"Erro ao obter estatísticas: {e}")
+
+        return stats
+
+    def health_check(self) -> tuple[bool, str]:
+        """Verifica se o cache está funcionando corretamente"""
+        try:
+            test_key = "health_check_test"
+            test_value = {"timestamp": "2024-09-24", "status": "ok"}
+
+            # Teste básico set/get
+            self.cache.set(test_key, test_value, 10)
+            result = self.cache.get(test_key)
+
+            if result != test_value:
+                return False, "Cache set/get failed"
+
+            # Teste específico para Redis
+            if self.is_redis_backend() and self.redis_client:
+                self.redis_client.ping()
+                return True, "Redis cache is healthy"
+            else:
+                return True, "Database cache is healthy"
+
+        except Exception as e:
+            error_msg = f"Cache health check failed: {e}"
+            logger.error(error_msg)
+            return False, error_msg
 
     def invalidate_related_cache(
         self, model_name: str, instance_id: Optional[int] = None

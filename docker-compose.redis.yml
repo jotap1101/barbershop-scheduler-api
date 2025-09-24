@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  redis-dev:
+    image: redis:latest
+    container_name: barbershop-redis-dev
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - barbershop-network
+
+volumes:
+  redis-data:
+
+networks:
+  barbershop-network:
+    driver: bridge

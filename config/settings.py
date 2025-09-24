@@ -114,17 +114,76 @@ DATABASES = {
 
 # Cache configuration
 # https://docs.djangoproject.com/en/5.2/topics/cache/
-CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
-        "LOCATION": "cache_table",
-    },
-    # Cache específico para throttling (separado do cache de dados)
-    "throttle": {
-        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
-        "LOCATION": "throttle_cache_table",
-    },
-}
+
+# Redis Configuration (Development)
+USE_REDIS_CACHE = env.bool("USE_REDIS_CACHE", default=False)
+
+if USE_REDIS_CACHE:
+    # Redis-based cache configuration
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": env("REDIS_URL", default="redis://127.0.0.1:6379/0"),
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                "IGNORE_EXCEPTIONS": True,  # Graceful fallback se Redis falhar
+                "CONNECTION_POOL_KWARGS": {
+                    "max_connections": env.int("REDIS_MAX_CONNECTIONS", default=20),
+                    "retry_on_timeout": True,
+                },
+                "SERIALIZER": "django_redis.serializers.json.JSONSerializer",
+                "COMPRESSOR": "django_redis.compressors.zlib.ZlibCompressor",
+            },
+            "KEY_PREFIX": env("REDIS_KEY_PREFIX", default="barbershop_api"),
+            "VERSION": 1,
+            "TIMEOUT": 300,  # 5 minutos default
+        },
+        "throttle": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": env("REDIS_URL", default="redis://127.0.0.1:6379/1"),
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                "IGNORE_EXCEPTIONS": True,
+                "CONNECTION_POOL_KWARGS": {
+                    "max_connections": env.int(
+                        "REDIS_THROTTLE_MAX_CONNECTIONS", default=10
+                    ),
+                    "retry_on_timeout": True,
+                },
+            },
+            "KEY_PREFIX": env(
+                "REDIS_THROTTLE_KEY_PREFIX", default="barbershop_throttle"
+            ),
+            "VERSION": 1,
+        },
+    }
+
+    # Log quando Redis estiver sendo usado
+    import logging
+
+    logger = logging.getLogger(__name__)
+    logger.info(
+        f"🔥 Using Redis cache backend: {env('REDIS_URL', default='redis://127.0.0.1:6379')}"
+    )
+else:
+    # Fallback para DatabaseCache (configuração atual)
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+            "LOCATION": "cache_table",
+        },
+        # Cache específico para throttling (separado do cache de dados)
+        "throttle": {
+            "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+            "LOCATION": "throttle_cache_table",
+        },
+    }
+
+    # Log quando estiver usando DatabaseCache
+    import logging
+
+    logger = logging.getLogger(__name__)
+    logger.info("💾 Using DatabaseCache backend (default)")
 
 # Cache settings para diferentes tipos de dados
 CACHE_TTL = {
