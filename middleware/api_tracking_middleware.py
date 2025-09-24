@@ -6,6 +6,25 @@ Este middleware monitora e registra o uso das APIs, incluindo:
 - Frequência de uso por usuário
 - Detecção de padrões anômalos
 - Métricas para otimização
+
+Rotas monitoradas baseadas na estrutura real da aplicação:
+- /api/v1/token/* - Autenticação JWT (obtain, refresh, verify, blacklist)
+- /api/v1/users/* - Gestão de usuários (ViewSet completo)
+- /api/v1/barbershops/* - Gestão de barbearias
+- /api/v1/services/* - Gestão de serviços
+- /api/v1/barbershop-customers/* - Gestão de clientes das barbearias
+- /api/v1/appointments/* - Gestão de agendamentos
+- /api/v1/barber-schedules/* - Gestão de horários dos barbeiros
+- /api/v1/payments/* - Processamento de pagamentos
+- /api/v1/reviews/* - Sistema de avaliações
+- /api/schema/* - Documentação da API (drf-spectacular)
+
+Rotas ignoradas:
+- /api/schema/swagger-ui/ - Interface Swagger
+- /api/schema/redoc/ - Interface ReDoc
+- /api-auth/ - Interface de auth do DRF
+- /admin/ - Admin do Django
+- /static/ e /media/ - Arquivos estáticos
 """
 
 import time
@@ -37,11 +56,17 @@ class APIUsageTrackingMiddleware(MiddlewareMixin):
         super().__init__(get_response)
         self.get_response = get_response
 
-        # Configurações do tracking
-        self.track_paths = ["/api/"]  # Paths para rastrear
+        # Configurações do tracking baseadas nas rotas reais
+        self.track_paths = [
+            "/api/v1/",  # API versão 1 (rotas principais)
+            "/api/schema/",  # Schema da API
+        ]
+
         self.ignore_paths = [
-            "/api/health/",  # Health checks
-            "/api/docs/",  # Documentação
+            "/api/schema/swagger-ui/",  # Interface Swagger
+            "/api/schema/redoc/",  # Interface ReDoc
+            "/api-auth/",  # DRF auth interface
+            "/admin/",  # Admin do Django
             "/static/",  # Arquivos estáticos
             "/media/",  # Arquivos de mídia
         ]
@@ -145,20 +170,24 @@ class APIUsageTrackingMiddleware(MiddlewareMixin):
 
     def is_critical_endpoint(self, request):
         """
-        Identifica endpoints críticos que precisam de log detalhado
+        Identifica endpoints críticos que precisam de log detalhado baseados nas rotas reais
         """
         critical_paths = [
-            "/api/auth/",
-            "/api/payment/",
-            "/api/appointment/",
+            "/api/v1/token/",  # Autenticação JWT (token obtain, refresh, verify, blacklist)
+            "/api/v1/users/",  # Gestão de usuários
+            "/api/v1/payments/",  # Processamento de pagamentos
+            "/api/v1/appointments/",  # Agendamentos
+            "/api/v1/barbershops/",  # Dados das barbearias
         ]
 
         return any(request.path.startswith(path) for path in critical_paths)
 
     def prepare_tracking_data(self, request, response, duration):
         """
-        Prepara dados completos para tracking
+        Prepara dados completos para tracking baseado nas rotas reais
         """
+        endpoint_details = self.get_endpoint_details(request.path, request.method)
+
         return {
             "type": "API_REQUEST",
             "timestamp": request.api_start_datetime.isoformat(),
@@ -173,7 +202,10 @@ class APIUsageTrackingMiddleware(MiddlewareMixin):
             "client_ip": self.get_client_ip(request),
             "user_agent": self.get_user_agent(request),
             "content_length": response.get("Content-Length", 0),
-            "endpoint_category": self.categorize_endpoint(request.path),
+            "endpoint_category": endpoint_details["category"],
+            "endpoint_type": endpoint_details["endpoint_type"],
+            "is_critical_endpoint": endpoint_details["is_critical"],
+            "requires_auth": endpoint_details["requires_auth"],
             "is_mobile": self.is_mobile_request(request),
             "response_size_category": self.categorize_response_size(
                 response.get("Content-Length", 0)
@@ -257,20 +289,39 @@ class APIUsageTrackingMiddleware(MiddlewareMixin):
 
     def categorize_endpoint(self, path):
         """
-        Categoriza endpoint para análise
+        Categoriza endpoint para análise baseado nas rotas reais da aplicação
         """
-        if "/auth/" in path:
+        # Rotas de autenticação JWT
+        if "/token/" in path:
             return "authentication"
-        elif "/appointment/" in path:
+        # Rotas de usuários
+        elif "/users/" in path:
+            return "user_management"
+        # Rotas de agendamentos
+        elif "/appointments/" in path or "/barber-schedules/" in path:
             return "appointment"
-        elif "/payment/" in path:
+        # Rotas de pagamentos
+        elif "/payments/" in path:
             return "payment"
-        elif "/barbershop/" in path:
+        # Rotas de barbearias e serviços
+        elif (
+            "/barbershops/" in path
+            or "/services/" in path
+            or "/barbershop-customers/" in path
+        ):
             return "barbershop"
-        elif "/review/" in path:
+        # Rotas de avaliações
+        elif "/reviews/" in path:
             return "review"
-        elif "/user/" in path:
-            return "user"
+        # Rotas de documentação da API
+        elif "/schema/" in path:
+            return "api_documentation"
+        # Interface de autenticação do DRF
+        elif "/api-auth/" in path:
+            return "drf_auth_interface"
+        # Admin do Django
+        elif "/admin/" in path:
+            return "admin"
         else:
             return "other"
 
@@ -290,3 +341,62 @@ class APIUsageTrackingMiddleware(MiddlewareMixin):
                 return "xlarge"
         except (ValueError, TypeError):
             return "unknown"
+
+    def get_endpoint_details(self, path, method):
+        """
+        Fornece detalhes específicos do endpoint baseado nas rotas reais
+        """
+        endpoint_info = {
+            "category": self.categorize_endpoint(path),
+            "is_critical": False,
+            "requires_auth": True,  # Por padrão, assumimos que precisa autenticação
+            "endpoint_type": "unknown",
+        }
+
+        # Rotas de autenticação
+        if "/token/" in path:
+            endpoint_info.update(
+                {
+                    "is_critical": True,
+                    "requires_auth": False if method == "POST" else True,
+                    "endpoint_type": "auth_token",
+                }
+            )
+
+        # Rotas de usuários (ViewSet completo)
+        elif "/users/" in path:
+            endpoint_info.update({"is_critical": True, "endpoint_type": "user_crud"})
+
+        # Rotas de agendamentos
+        elif "/appointments/" in path:
+            endpoint_info.update(
+                {"is_critical": True, "endpoint_type": "appointment_crud"}
+            )
+        elif "/barber-schedules/" in path:
+            endpoint_info.update(
+                {"is_critical": True, "endpoint_type": "schedule_crud"}
+            )
+
+        # Rotas de pagamentos
+        elif "/payments/" in path:
+            endpoint_info.update({"is_critical": True, "endpoint_type": "payment_crud"})
+
+        # Rotas de barbearias
+        elif "/barbershops/" in path:
+            endpoint_info.update({"endpoint_type": "barbershop_crud"})
+        elif "/services/" in path:
+            endpoint_info.update({"endpoint_type": "service_crud"})
+        elif "/barbershop-customers/" in path:
+            endpoint_info.update({"endpoint_type": "customer_crud"})
+
+        # Rotas de avaliações
+        elif "/reviews/" in path:
+            endpoint_info.update({"endpoint_type": "review_crud"})
+
+        # Rotas de documentação (não precisam auth)
+        elif "/schema/" in path:
+            endpoint_info.update(
+                {"requires_auth": False, "endpoint_type": "api_documentation"}
+            )
+
+        return endpoint_info
