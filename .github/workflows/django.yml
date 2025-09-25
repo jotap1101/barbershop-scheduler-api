@@ -23,22 +23,32 @@ jobs:
       ALLOWED_HOSTS: ${{ secrets.ALLOWED_HOSTS }}
       DB_ENGINE: ${{ secrets.DB_ENGINE }}
       DB_NAME: ${{ secrets.DB_NAME }}
+      REDIS_URL: ${{ secrets.REDIS_URL }}
+      REDIS_THROTTLE_URL: ${{ secrets.REDIS_THROTTLE_URL }}
+      REDIS_KEY_PREFIX: ${{ secrets.REDIS_KEY_PREFIX }}
+      REDIS_THROTTLE_KEY_PREFIX: ${{ secrets.REDIS_THROTTLE_KEY_PREFIX }}
+      REDIS_MAX_CONNECTIONS: ${{ secrets.REDIS_MAX_CONNECTIONS }}
+      REDIS_THROTTLE_MAX_CONNECTIONS: ${{ secrets.REDIS_THROTTLE_MAX_CONNECTIONS }}
     strategy:
       max-parallel: 4
       matrix:
         python-version: [3.13.7]
     steps:
-    - uses: actions/checkout@v4
-    - name: Log in to Docker Hub
-      run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install Dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-    - name: Run Tests
-      run: |
-        python manage.py test apps/
+      - uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Tests
+        run: |
+          python manage.py test apps/
