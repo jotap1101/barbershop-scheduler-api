@@ -1,45 +1,6 @@
 # 💈 Barbershop API
 
-Uma API REST completa para gerenciamento de barbearias desenvolvida com Django REST Framework, incluindo autentica### 9. Popule o Banco com Dados de Teste (Opcional)
-
-```bash
-python scripts/populate_db.py
-```
-
-### 10. Inicie o Servidor de Desenvolvimento
-
-```bash
-python manage.py runserver
-```
-
-A API estará disponível em: **http://127.0.0.1:8000**
-
-## 🛠️ Gerenciamento do Redis
-
-### Scripts Disponíveis
-
-````bash
-# Iniciar Redis
-./scripts/redis-dev.sh start
-
-# Verificar status
-./scripts/redis-dev.sh status
-
-# Ver logs
-./scripts/redis-dev.sh logs
-
-# Parar Redis
-./scripts/redis-dev.sh stop
-
-# Reiniciar Redis
-./scripts/redis-dev.sh restart
-
-# Limpar dados do Redis
-./scripts/redis-dev.sh clean
-
-# Testar cache
-python scripts/test_cache.py
-```damentos, pagamentos e sistema de avaliações.
+Uma API REST completa para gerenciamento de barbearias desenvolvida com Django REST Framework, incluindo autenticação JWT, agendamentos, pagamentos e sistema de avaliações.
 
 ## 📋 Sobre o Projeto
 
@@ -80,9 +41,9 @@ O projeto está organizado em 6 apps modulares:
 ### 1. Clone o Repositório
 
 ```bash
-git clone https://github.com/jotap1101/api.git
-cd api
-````
+git clone https://github.com/jotap1101/barbershop-scheduler-api.git
+cd barbershop-scheduler-api
+```
 
 ### 2. Crie e Ative um Ambiente Virtual
 
@@ -107,6 +68,16 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+**Principais dependências:**
+
+- `Django 5.2.6` - Framework web
+- `djangorestframework` - API REST
+- `django-redis 6.0.0` - Integração Redis
+- `redis 6.4.0` - Cliente Redis Python
+- `djangorestframework-simplejwt` - Autenticação JWT
+- `django-cors-headers` - CORS
+- `drf-spectacular` - Documentação OpenAPI
+
 ### 4. Configure as Variáveis de Ambiente
 
 Crie um arquivo `.env` na raiz do projeto:
@@ -117,7 +88,7 @@ SECRET_KEY=sua-chave-secreta-aqui-muito-segura-e-aleatoria
 DEBUG=True
 ALLOWED_HOSTS=localhost,127.0.0.1,*
 
-# Database Settings (SQLite para desenvolvimento)
+# Database Settings (development)
 DB_ENGINE=django.db.backends.sqlite3
 DB_NAME=db.sqlite3
 
@@ -129,7 +100,7 @@ REDIS_THROTTLE_MAX_CONNECTIONS=10
 REDIS_KEY_PREFIX=barbershop_api
 REDIS_THROTTLE_KEY_PREFIX=barbershop_throttle
 
-# Para PostgreSQL (produção):
+# Database Settings (production - optional)
 # DB_ENGINE=django.db.backends.postgresql
 # DB_NAME=barbershop_db
 # DB_USER=seu_usuario
@@ -137,9 +108,9 @@ REDIS_THROTTLE_KEY_PREFIX=barbershop_throttle
 # DB_HOST=localhost
 # DB_PORT=5432
 
-# DockerHub settings
-DOCKERHUB_USERNAME=
-DOCKERHUB_TOKEN=
+# DockerHub Settings (optional, for image pushes)
+DOCKERHUB_USERNAME=seu_usuario_dockerhub
+DOCKERHUB_PASSWORD=sua_senha_dockerhub
 ```
 
 ### 5. Execute as Migrações
@@ -165,6 +136,7 @@ chmod +x scripts/redis-dev.sh
 ### 7. Configure as Tabelas de Cache (OPCIONAL - Não necessário com Redis)
 
 ```bash
+# Não é mais necessário criar tabelas de cache
 # O Redis é usado como cache principal
 echo "Redis configurado como cache principal - sem necessidade de tabelas SQLite"
 ```
@@ -175,19 +147,97 @@ echo "Redis configurado como cache principal - sem necessidade de tabelas SQLite
 python manage.py createsuperuser
 ```
 
-### 8. Popule o Banco com Dados de Teste (Opcional)
+### 9. Popule o Banco com Dados de Teste (Opcional)
 
 ```bash
 python scripts/populate_db.py
 ```
 
-### 9. Inicie o Servidor de Desenvolvimento
+### 10. Inicie o Servidor de Desenvolvimento
 
 ```bash
 python manage.py runserver
 ```
 
+**⚠️ Importante**: O Redis deve estar rodando antes de iniciar o servidor Django, pois é usado como cache principal.
+
 A API estará disponível em: **http://127.0.0.1:8000**
+
+## 🛠️ Gerenciamento do Redis
+
+### Scripts Disponíveis
+
+```bash
+# Iniciar Redis
+./scripts/redis-dev.sh start
+
+# Verificar status
+./scripts/redis-dev.sh status
+
+# Ver logs
+./scripts/redis-dev.sh logs
+
+# Parar Redis
+./scripts/redis-dev.sh stop
+
+# Reiniciar Redis
+./scripts/redis-dev.sh restart
+
+# Limpar dados do Redis
+./scripts/redis-dev.sh clean
+
+# Testar cache
+python scripts/test_cache.py
+```
+
+### Comandos Docker Compose Alternativos
+
+```bash
+# Iniciar Redis em background
+docker-compose -f docker-compose.redis.yml up -d
+
+# Ver logs do Redis
+docker-compose -f docker-compose.redis.yml logs -f redis-dev
+
+# Parar Redis
+docker-compose -f docker-compose.redis.yml down
+
+# Reiniciar Redis
+docker-compose -f docker-compose.redis.yml restart
+
+# Remover volumes (limpar dados)
+docker-compose -f docker-compose.redis.yml down -v
+```
+
+### Configuração e Monitoramento
+
+```bash
+# Conectar ao Redis CLI
+docker exec -it barbershop-redis-dev redis-cli
+
+# Monitorar comandos em tempo real
+docker exec -it barbershop-redis-dev redis-cli monitor
+
+# Verificar informações do servidor
+docker exec -it barbershop-redis-dev redis-cli info
+
+# Verificar chaves por padrão
+docker exec -it barbershop-redis-dev redis-cli --scan --pattern "barbershop_api:*"
+```
+
+### Solução de Problemas
+
+**Redis não conecta:**
+
+1. Verifique se o Docker está rodando: `docker ps`
+2. Verifique se a porta 6379 está livre: `netstat -an | grep 6379`
+3. Reinicie o Redis: `./scripts/redis-dev.sh restart`
+
+**Cache não funciona:**
+
+1. Teste a conexão: `python scripts/test_cache.py`
+2. Verifique as configurações no `.env`
+3. Verifique os logs: `docker-compose -f docker-compose.redis.yml logs redis-dev`
 
 ## 📚 Documentação da API
 
