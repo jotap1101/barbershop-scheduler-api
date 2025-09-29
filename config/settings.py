@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     "apps.appointment.apps.AppointmentConfig",
     "apps.payment.apps.PaymentConfig",
     "apps.review.apps.ReviewConfig",
+    "apps.analytics.apps.AnalyticsConfig",
 ]
 
 MIDDLEWARE = [
