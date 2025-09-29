@@ -28,6 +28,7 @@ class CacheKeys:
     USER_PREFIX = "user"
     REVIEW_PREFIX = "review"
     SEARCH_PREFIX = "search"
+    ANALYTICS_PREFIX = "analytics"
 
     # Cache keys para listagens
     BARBERSHOP_LIST = f"{BARBERSHOP_PREFIX}:list"
@@ -44,6 +45,12 @@ class CacheKeys:
     BARBERSHOP_STATS = f"{BARBERSHOP_PREFIX}:stats"
     POPULAR_SERVICES = f"{SERVICE_PREFIX}:popular"
     REVIEWS_SUMMARY = f"{REVIEW_PREFIX}:summary"
+    
+    # Cache keys para analytics
+    DASHBOARD_OVERVIEW = f"{ANALYTICS_PREFIX}:dashboard"
+    BARBERSHOP_ANALYTICS = f"{ANALYTICS_PREFIX}:barbershop"
+    BARBER_PERFORMANCE = f"{ANALYTICS_PREFIX}:barber"
+    REVENUE_ANALYTICS = f"{ANALYTICS_PREFIX}:revenue"
 
 
 class CacheManager:
