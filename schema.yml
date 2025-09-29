@@ -12,6 +12,143 @@ info:
     name: MIT License
     url: https://opensource.org/licenses/MIT
 paths:
+  /api/v1/analytics/barber/{barber_id}/:
+    get:
+      operationId: v1_analytics_barber_retrieve
+      description: Retorna métricas de performance de um barbeiro específico.
+      summary: Performance de Barbeiro
+      parameters:
+      - in: path
+        name: barber_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - analytics
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BarberPerformance'
+          description: ''
+  /api/v1/analytics/barbershop/{barbershop_id}/:
+    get:
+      operationId: v1_analytics_barbershop_retrieve
+      description: Retorna analytics específicas de uma barbearia.
+      summary: Analytics de Barbearia
+      parameters:
+      - in: path
+        name: barbershop_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - analytics
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BarbershopAnalytics'
+          description: ''
+  /api/v1/analytics/customers/:
+    get:
+      operationId: v1_analytics_customers_retrieve
+      description: Retorna insights sobre o comportamento dos clientes.
+      summary: Insights de Clientes
+      tags:
+      - analytics
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerInsights'
+          description: ''
+  /api/v1/analytics/dashboard/:
+    get:
+      operationId: v1_analytics_dashboard_retrieve
+      description: Retorna métricas gerais do sistema para administradores.
+      summary: Dashboard Overview
+      tags:
+      - analytics
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardOverview'
+          description: ''
+  /api/v1/analytics/my-analytics/:
+    get:
+      operationId: v1_analytics_my_analytics_retrieve
+      description: Retorna analytics personalizadas baseadas no tipo de usuário.
+      summary: Minhas Analytics
+      tags:
+      - analytics
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardOverview'
+          description: ''
+  /api/v1/analytics/revenue/:
+    get:
+      operationId: v1_analytics_revenue_list
+      description: Retorna analytics de receita por período.
+      summary: Analytics de Receita
+      tags:
+      - analytics
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RevenueAnalytics'
+          description: ''
+  /api/v1/analytics/services/:
+    get:
+      operationId: v1_analytics_services_list
+      description: Retorna analytics de popularidade dos serviços.
+      summary: Popularidade de Serviços
+      tags:
+      - analytics
+      security:
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ServicePopularity'
+          description: ''
   /api/v1/appointments/:
     get:
       operationId: v1_appointments_list
@@ -3153,6 +3290,44 @@ components:
       required:
       - end_datetime
       - start_datetime
+    BarberPerformance:
+      type: object
+      description: Serializer para performance de barbeiros
+      properties:
+        barber_id:
+          type: string
+          format: uuid
+        barber_name:
+          type: string
+        total_appointments:
+          type: integer
+        total_revenue:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        average_rating:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,1}(?:\.\d{0,2})?$
+        appointments_this_month:
+          type: integer
+        revenue_this_month:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        completion_rate:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+      required:
+      - appointments_this_month
+      - average_rating
+      - barber_id
+      - barber_name
+      - completion_rate
+      - revenue_this_month
+      - total_appointments
+      - total_revenue
     BarberSchedule:
       type: object
       description: Serializer for BarberSchedule model with all fields
@@ -3533,6 +3708,50 @@ components:
       - address
       - name
       - owner
+    BarbershopAnalytics:
+      type: object
+      description: Serializer para analytics específicas de uma barbearia
+      properties:
+        barbershop_id:
+          type: string
+          format: uuid
+        barbershop_name:
+          type: string
+        total_customers:
+          type: integer
+        total_appointments:
+          type: integer
+        total_revenue:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        average_rating:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,1}(?:\.\d{0,2})?$
+        appointments_this_month:
+          type: integer
+        revenue_this_month:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        top_service:
+          type: string
+          nullable: true
+        most_popular_barber:
+          type: string
+          nullable: true
+      required:
+      - appointments_this_month
+      - average_rating
+      - barbershop_id
+      - barbershop_name
+      - most_popular_barber
+      - revenue_this_month
+      - top_service
+      - total_appointments
+      - total_customers
+      - total_revenue
     BarbershopCreate:
       type: object
       description: Serializer for creating barbershops
@@ -4096,6 +4315,67 @@ components:
       required:
       - password
       - username
+    CustomerInsights:
+      type: object
+      description: Serializer para insights de clientes
+      properties:
+        total_customers:
+          type: integer
+        new_customers_this_month:
+          type: integer
+        returning_customers:
+          type: integer
+        average_appointments_per_customer:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+        customer_retention_rate:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+        most_frequent_customer:
+          type: string
+          nullable: true
+      required:
+      - average_appointments_per_customer
+      - customer_retention_rate
+      - most_frequent_customer
+      - new_customers_this_month
+      - returning_customers
+      - total_customers
+    DashboardOverview:
+      type: object
+      description: Serializer para overview geral do dashboard
+      properties:
+        total_barbershops:
+          type: integer
+        total_users:
+          type: integer
+        total_appointments_today:
+          type: integer
+        total_revenue_today:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        total_appointments_this_month:
+          type: integer
+        total_revenue_this_month:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        active_barbers:
+          type: integer
+        pending_appointments:
+          type: integer
+      required:
+      - active_barbers
+      - pending_appointments
+      - total_appointments_this_month
+      - total_appointments_today
+      - total_barbershops
+      - total_revenue_this_month
+      - total_revenue_today
+      - total_users
     MethodEnum:
       enum:
       - PIX
@@ -4924,6 +5204,31 @@ components:
         * `3` - 3 Estrelas
         * `4` - 4 Estrelas
         * `5` - 5 Estrelas
+    RevenueAnalytics:
+      type: object
+      description: Serializer para analytics de receita
+      properties:
+        period:
+          type: string
+        date:
+          type: string
+          format: date
+        revenue:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        appointments_count:
+          type: integer
+        average_ticket:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+      required:
+      - appointments_count
+      - average_ticket
+      - date
+      - period
+      - revenue
     ReviewCreate:
       type: object
       description: Serializer para criação de avaliações.
@@ -5517,6 +5822,39 @@ components:
       - duration
       - name
       - price
+    ServicePopularity:
+      type: object
+      description: Serializer para popularidade de serviços
+      properties:
+        service_id:
+          type: string
+          format: uuid
+        service_name:
+          type: string
+        barbershop_name:
+          type: string
+        appointments_count:
+          type: integer
+        total_revenue:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        average_rating:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,1}(?:\.\d{0,2})?$
+        booking_percentage:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+      required:
+      - appointments_count
+      - average_rating
+      - barbershop_name
+      - booking_percentage
+      - service_id
+      - service_name
+      - total_revenue
     ServiceRequest:
       type: object
       description: Serializer for Service model with all fields
