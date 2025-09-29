@@ -1,6 +1,45 @@
 # 💈 Barbershop API
 
-Uma API REST completa para gerenciamento de barbearias desenvolvida com Django REST Framework, incluindo autenticação JWT, agendamentos, pagamentos e sistema de avaliações.
+Uma API REST completa para gerenciamento de barbearias desenvolvida com Django REST Framework, incluindo autentica### 9. Popule o Banco com Dados de Teste (Opcional)
+
+```bash
+python scripts/populate_db.py
+```
+
+### 10. Inicie o Servidor de Desenvolvimento
+
+```bash
+python manage.py runserver
+```
+
+A API estará disponível em: **http://127.0.0.1:8000**
+
+## 🛠️ Gerenciamento do Redis
+
+### Scripts Disponíveis
+
+````bash
+# Iniciar Redis
+./scripts/redis-dev.sh start
+
+# Verificar status
+./scripts/redis-dev.sh status
+
+# Ver logs
+./scripts/redis-dev.sh logs
+
+# Parar Redis
+./scripts/redis-dev.sh stop
+
+# Reiniciar Redis
+./scripts/redis-dev.sh restart
+
+# Limpar dados do Redis
+./scripts/redis-dev.sh clean
+
+# Testar cache
+python scripts/test_cache.py
+```damentos, pagamentos e sistema de avaliações.
 
 ## 📋 Sobre o Projeto
 
@@ -11,7 +50,7 @@ Esta é uma API robusta para sistemas de barbearia que oferece:
 - **Processamento de Pagamentos**: Sistema completo de pagamentos com rastreamento de status
 - **Sistema de Avaliações**: Avaliações e comentários de clientes
 - **Autenticação JWT**: Sistema seguro de autenticação com tokens de acesso e refresh
-- **Cache Inteligente**: Sistema de cache em duas camadas para otimização de performance
+- **Cache Inteligente**: Sistema de cache Redis em duas camadas para otimização de performance
 - **Throttling Avançado**: Rate limiting personalizado por tipo de operação
 - **Documentação Completa**: Swagger/ReDoc integrado
 
@@ -33,6 +72,8 @@ O projeto está organizado em 6 apps modulares:
 - Python 3.11+
 - pip
 - Git
+- Docker (para Redis)
+- Docker Compose (para Redis)
 
 ### Observação: Utilize `python` se o sistema operacional for Windows, e `python3` se for macOS/Linux.
 
@@ -41,7 +82,7 @@ O projeto está organizado em 6 apps modulares:
 ```bash
 git clone https://github.com/jotap1101/api.git
 cd api
-```
+````
 
 ### 2. Crie e Ative um Ambiente Virtual
 
@@ -80,6 +121,14 @@ ALLOWED_HOSTS=localhost,127.0.0.1,*
 DB_ENGINE=django.db.backends.sqlite3
 DB_NAME=db.sqlite3
 
+# Redis Settings (Cache)
+REDIS_URL=redis://127.0.0.1:6379/0
+REDIS_THROTTLE_URL=redis://127.0.0.1:6379/1
+REDIS_MAX_CONNECTIONS=20
+REDIS_THROTTLE_MAX_CONNECTIONS=10
+REDIS_KEY_PREFIX=barbershop_api
+REDIS_THROTTLE_KEY_PREFIX=barbershop_throttle
+
 # Para PostgreSQL (produção):
 # DB_ENGINE=django.db.backends.postgresql
 # DB_NAME=barbershop_db
@@ -87,6 +136,10 @@ DB_NAME=db.sqlite3
 # DB_PASSWORD=sua_senha
 # DB_HOST=localhost
 # DB_PORT=5432
+
+# DockerHub settings
+DOCKERHUB_USERNAME=
+DOCKERHUB_TOKEN=
 ```
 
 ### 5. Execute as Migrações
@@ -95,14 +148,28 @@ DB_NAME=db.sqlite3
 python manage.py migrate
 ```
 
-### 6. Configure as Tabelas de Cache
+### 6. Configure o Redis
 
 ```bash
-python manage.py createcachetable cache_table
-python manage.py createcachetable throttle_cache_table
+# Inicie o Redis com Docker Compose (Recomendado)
+docker-compose -f docker-compose.redis.yml up -d
+
+# Ou use o script de gerenciamento
+chmod +x scripts/redis-dev.sh
+./scripts/redis-dev.sh start
+
+# Verifique se o Redis está funcionando
+./scripts/redis-dev.sh status
 ```
 
-### 7. Crie um Superusuário (Opcional)
+### 7. Configure as Tabelas de Cache (OPCIONAL - Não necessário com Redis)
+
+```bash
+# O Redis é usado como cache principal
+echo "Redis configurado como cache principal - sem necessidade de tabelas SQLite"
+```
+
+### 8. Crie um Superusuário (Opcional)
 
 ```bash
 python manage.py createsuperuser
@@ -216,11 +283,12 @@ Os logs são salvos em:
 
 ## 📈 Sistema de Cache
 
-### Configuração:
+### Configuração Redis:
 
-- **Cache Padrão**: Dados da aplicação
-- **Cache de Throttle**: Rate limiting
-- **TTL Configurável**: SHORT (5min), MEDIUM (30min), LONG (2h)
+- **Cache Primário**: Redis Database 0 - Dados da aplicação
+- **Cache de Throttle**: Redis Database 1 - Rate limiting
+- **TTL Configurável**: SHORT (5min), MEDIUM (30min), LONG (2h), LISTING (15min)
+- **Recursos Avançados**: JSON serialization, compressão Zlib, connection pooling
 
 ### Invalidação:
 
@@ -247,11 +315,12 @@ O cache é automaticamente invalidado quando os dados são modificados através 
 - **CORS Configurado**: Para desenvolvimento e produção
 - **Throttling**: Proteção contra abuso
 - **Logs de Segurança**: Monitoramento de tentativas de acesso
+- **Cache Redis**: Proteção contra falha rápida se Redis não disponível
 
 ## 📁 Estrutura de Arquivos
 
 ```
-api/
+barbershop-scheduler-api/
 ├── apps/                          # Apps da aplicação
 │   ├── auth/                      # Autenticação JWT
 │   ├── user/                      # Gestão de usuários

@@ -47,9 +47,12 @@ This is a comprehensive Django REST API for barbershop operations with JWT authe
 
 **Cache System** (`utils.cache.cache_utils.py`):
 
-- Organized cache keys: `CacheKeys.BARBERSHOP_LIST`, `CacheKeys.AVAILABLE_SLOTS`
-- Configurable TTL: `CACHE_TTL.SHORT` (5 min), `CACHE_TTL.MEDIUM` (30 min), `CACHE_TTL.LONG` (2h)
-- Two cache backends: 'default' for data, 'throttle' for rate limiting
+- **Redis as Primary Cache**: Complete migration from SQLite tables to Redis for all cache operations
+- Organized cache keys: `CacheKeys.BARBERSHOP_LIST`, `CacheKeys.AVAILABLE_SLOTS`, `CacheKeys.USER_PROFILE`
+- Configurable TTL: `CACHE_TTL.SHORT` (5 min), `CACHE_TTL.MEDIUM` (30 min), `CACHE_TTL.LONG` (2h), `CACHE_TTL.LISTING` (15 min)
+- Two Redis databases: database 0 for data cache, database 1 for throttle cache
+- Advanced Redis features: JSON serialization, zlib compression, connection pooling
+- Direct Redis client access for advanced operations and monitoring
 
 **Custom Throttles** (`utils.throttles.custom_throttles.py`):
 
@@ -71,6 +74,7 @@ This is a comprehensive Django REST API for barbershop operations with JWT authe
 - Brazilian locale: `LANGUAGE_CODE = "pt-br"`, `TIME_ZONE = "America/Sao_Paulo"`
 - Custom user model: `AUTH_USER_MODEL = "user.User"`
 - JWT access tokens: 5 minutes, refresh tokens: 1 day
+- **Redis Cache Configuration**: Dual Redis setup with separate databases for data and throttling
 
 **Database**: SQLite for development (`db.sqlite3`), PostgreSQL production setup commented out
 
@@ -90,6 +94,17 @@ python manage.py migrate    # Apply database migrations
 python scripts/populate_db.py  # Seed database with realistic test data using Faker
 ```
 
+**Redis Setup for Development**:
+
+```bash
+# Using Docker Compose (Recommended)
+docker-compose -f docker-compose.redis.yml up -d  # Start Redis server
+./scripts/redis-dev.sh start                      # Alternative Redis management
+./scripts/redis-dev.sh status                     # Check Redis status
+./scripts/redis-dev.sh logs                       # View Redis logs
+./scripts/redis-dev.sh stop                       # Stop Redis server
+```
+
 **Testing**:
 
 - Comprehensive test suites in each app's `tests.py` (1949+ lines in users alone)
@@ -99,8 +114,9 @@ python scripts/populate_db.py  # Seed database with realistic test data using Fa
 **Cache Management**:
 
 ```bash
-python manage.py createcachetable cache_table          # Create default cache table
-python manage.py createcachetable throttle_cache_table # Create throttle cache table
+# Redis is now the primary cache backend - no SQLite cache tables needed
+docker-compose -f docker-compose.redis.yml up -d  # Start Redis server
+python scripts/test_cache.py                      # Test cache functionality
 ```
 
 ## Common Patterns
