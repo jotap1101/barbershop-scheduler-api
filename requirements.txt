@@ -16,7 +16,7 @@ drf-spectacular-sidecar==2025.10.1
 Faker==37.11.0
 gunicorn==23.0.0
 httpie==3.2.4
-idna==3.10
+idna==3.11
 inflection==0.5.1
 jsonschema==4.25.1
 jsonschema-specifications==2025.9.1
